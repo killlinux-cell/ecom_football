@@ -1,0 +1,446 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Tableau de Bord - Dashboard{% endblock %}
+{% block page_title %}Tableau de Bord{% endblock %}
+
+{% block content %}
+<!-- En-tête avec statistiques principales -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center py-5">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-tachometer-alt"></i> Tableau de Bord
+                </h1>
+                <p class="lead mb-0">Bienvenue dans votre espace d'administration</p>
+                <p class="mb-0">Gérez vos produits, commandes, clients et analysez vos performances</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques principales -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card bg-gradient-primary text-white h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Commandes</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_orders }}</div>
+                        <div class="text-xs">Total des commandes</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-cart fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card bg-gradient-info text-white h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Revenus</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_revenue|floatformat:0 }} FCFA</div>
+                        <div class="text-xs">Chiffre d'affaires total</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-money-bill-wave fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card bg-gradient-success text-white h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Clients</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_users }}</div>
+                        <div class="text-xs">Utilisateurs inscrits</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card bg-gradient-warning text-white h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Produits</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_products }}</div>
+                        <div class="text-xs">Articles en catalogue</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tshirt fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Graphiques et analyses -->
+<div class="row mb-4">
+    <!-- Graphique des ventes -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Évolution des Ventes
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Répartition des commandes -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie"></i> Statut des Commandes
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="ordersChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tableaux de données -->
+<div class="row mb-4">
+    <!-- Dernières commandes -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock"></i> Dernières Commandes
+                </h5>
+                <a href="{% url 'dashboard:orders' %}" class="btn btn-sm btn-outline-primary">
+                    Voir tout
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Commande</th>
+                                <th>Client</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>
+                                    <strong>#{{ order.order_number }}</strong><br>
+                                    <small class="text-muted">{{ order.created_at|date:"d/m/Y" }}</small>
+                                </td>
+                                <td>
+                                    {{ order.user.get_full_name|default:order.user.username }}<br>
+                                    <small class="text-muted">{{ order.user.email }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ order.total_amount }} FCFA</strong>
+                                </td>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% elif order.status == 'processing' %}
+                                        <span class="badge bg-info">En cours</span>
+                                    {% elif order.status == 'shipped' %}
+                                        <span class="badge bg-primary">Expédiée</span>
+                                    {% elif order.status == 'delivered' %}
+                                        <span class="badge bg-success">Livrée</span>
+                                    {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Annulée</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-shopping-cart fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">Aucune commande récente</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Produits populaires -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-fire"></i> Produits Populaires
+                </h5>
+                <a href="{% url 'dashboard:products' %}" class="btn btn-sm btn-outline-primary">
+                    Voir tout
+                </a>
+            </div>
+            <div class="card-body">
+                {% if popular_products %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Catégorie</th>
+                                <th>Prix</th>
+                                <th>Ventes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in popular_products %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                                 class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-secondary rounded me-2 d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="fas fa-tshirt text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <strong>{{ product.name|truncatechars:20 }}</strong><br>
+                                            <small class="text-muted">{{ product.team.name|default:"-" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ product.category.name }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ product.price }} FCFA</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ product.sales_count|default:0 }}</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-tshirt fa-2x text-muted mb-2"></i>
+                    <p class="text-muted mb-0">Aucun produit populaire</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt"></i> Actions Rapides
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{% url 'dashboard:products' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                            <i class="fas fa-plus fa-2x mb-2"></i>
+                            <span>Gérer les Produits</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'dashboard:orders' %}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                            <i class="fas fa-shopping-cart fa-2x mb-2"></i>
+                            <span>Gérer les Commandes</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'dashboard:users' %}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                            <i class="fas fa-user-plus fa-2x mb-2"></i>
+                            <span>Gérer les Utilisateurs</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'dashboard:analytics' %}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <span>Voir Analyses</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiques détaillées des utilisateurs -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users"></i> Statistiques des Utilisateurs
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fas fa-user-plus fa-2x text-primary mb-2"></i>
+                            <h4 class="mb-1">{{ new_users_7_days }}</h4>
+                            <p class="text-muted mb-0">Nouveaux (7 jours)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fas fa-user-clock fa-2x text-info mb-2"></i>
+                            <h4 class="mb-1">{{ new_users_30_days }}</h4>
+                            <p class="text-muted mb-0">Nouveaux (30 jours)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fas fa-shopping-bag fa-2x text-success mb-2"></i>
+                            <h4 class="mb-1">{{ users_with_orders }}</h4>
+                            <p class="text-muted mb-0">Avec commandes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fas fa-percentage fa-2x text-warning mb-2"></i>
+                            <h4 class="mb-1">{{ engagement_rate }}%</h4>
+                            <p class="text-muted mb-0">Taux d'engagement</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications et alertes -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell"></i> Notifications et Alertes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">{{ notification.title }}</div>
+                            <small class="text-muted">{{ notification.message }}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ notification.created_at|timesince }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <p class="text-muted mb-0">Aucune notification en attente</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Graphique des ventes
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+            datasets: [{
+                label: 'Ventes (FCFA)',
+                data: [12000, 19000, 3000, 5000, 2000, 3000, 15000, 25000, 18000, 22000, 28000, 35000],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Montant (FCFA)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+
+    // Graphique des statuts de commandes
+    const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+    new Chart(ordersCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['En attente', 'En cours', 'Expédiée', 'Livrée', 'Annulée'],
+            datasets: [{
+                data: [12, 19, 3, 5, 2],
+                backgroundColor: [
+                    '#ffc107',
+                    '#17a2b8',
+                    '#007bff',
+                    '#28a745',
+                    '#dc3545'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

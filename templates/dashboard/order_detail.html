@@ -1,0 +1,305 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Détails de la commande - {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Commande {{ order.order_number }}</h1>
+                <div>
+                    <a href="{% url 'dashboard:order_invoice' order.id %}" class="btn btn-outline-primary" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Facture
+                    </a>
+                    <a href="{% url 'dashboard:orders' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+
+            <!-- Informations générales -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Informations de la commande</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Statut de la commande</label>
+                                            <select name="status" class="form-select">
+                                                <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>En attente</option>
+                                                <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>En cours</option>
+                                                <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Expédiée</option>
+                                                <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Livrée</option>
+                                                <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Annulée</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Statut du paiement</label>
+                                            <select name="payment_status" class="form-select">
+                                                <option value="pending" {% if order.payment_status == 'pending' %}selected{% endif %}>En attente</option>
+                                                <option value="paid" {% if order.payment_status == 'paid' %}selected{% endif %}>Payé</option>
+                                                <option value="failed" {% if order.payment_status == 'failed' %}selected{% endif %}>Échoué</option>
+                                                <option value="refunded" {% if order.payment_status == 'refunded' %}selected{% endif %}>Remboursé</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Notes</label>
+                                    <textarea name="notes" class="form-control" rows="3">{{ order.notes }}</textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Mettre à jour
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Articles de la commande -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Articles commandés</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Produit</th>
+                                            <th>Taille</th>
+                                            <th>Quantité</th>
+                                            <th>Prix unitaire</th>
+                                            <th>Personnalisations</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in order_items %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if item.product.image %}
+                                                        <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" class="me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                                    {% endif %}
+                                                    <div>
+                                                        <strong>{{ item.product_name }}</strong>
+                                                        {% if item.product %}
+                                                            <br><small class="text-muted">{{ item.product.category.name }} - {{ item.product.team.name }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ item.size|default:"-" }}</td>
+                                            <td>{{ item.quantity }}</td>
+                                            <td>{{ item.price }} FCFA</td>
+                                            <td>
+                                                {% for customization in item.customizations.all %}
+                                                    <div class="small">
+                                                        {% if customization.customization.customization_type == 'name' and customization.custom_text %}
+                                                            <strong>Nom:</strong> "{{ customization.custom_text }}" (+{{ customization.price }} FCFA)
+                                                        {% else %}
+                                                            <strong>{{ customization.customization.name }}</strong> (+{{ customization.price }} FCFA)
+                                                        {% endif %}
+                                                    </div>
+                                                {% empty %}
+                                                    <span class="text-muted">Aucune</span>
+                                                {% endfor %}
+                                            </td>
+                                            <td><strong>{{ item.total_price }} FCFA</strong></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Informations client -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Client</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Nom:</strong> {{ order.user.get_full_name|default:order.user.username }}</p>
+                            <p><strong>Email:</strong> {{ order.user.email }}</p>
+                            <p><strong>Date d'inscription:</strong> {{ order.user.date_joined|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Adresse de livraison -->
+                    {% if order.shipping_address %}
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Adresse de livraison</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>{{ order.shipping_address.first_name }} {{ order.shipping_address.last_name }}</strong></p>
+                            <p>{{ order.shipping_address.street_address }}</p>
+                            {% if order.shipping_address.apartment_address %}
+                                <p>{{ order.shipping_address.apartment_address }}</p>
+                            {% endif %}
+                            <p>{{ order.shipping_address.city }}, {{ order.shipping_address.country }}</p>
+                            <p><strong>Téléphone:</strong> {{ order.shipping_address.phone_number }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Résumé financier -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Résumé financier</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span>Sous-total:</span>
+                                <span>{{ order.subtotal }} FCFA</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Frais de livraison:</span>
+                                <span>{{ order.shipping_cost }} FCFA</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong>Total:</strong>
+                                <strong>{{ order.total }} FCFA</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations de paiement -->
+                    {% if order.payment_method %}
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-credit-card"></i> Informations de Paiement
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Méthode:</strong> 
+                                {% if order.payment_method == 'paydunya' %}
+                                    <span class="badge bg-primary">PayDunya</span>
+                                {% elif order.payment_method == 'wave_direct' %}
+                                    <span class="badge bg-success">Wave Direct</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ order.payment_method }}</span>
+                                {% endif %}
+                            </p>
+                            
+                            {% if order.payment_id %}
+                                <p><strong>ID Paiement:</strong> 
+                                    <code class="bg-light p-1 rounded">{{ order.payment_id }}</code>
+                                </p>
+                            {% endif %}
+                            
+                            {% if payment %}
+                                <!-- Informations Wave spécifiques -->
+                                {% if payment.payment_method == 'wave_direct' %}
+                                    <div class="alert alert-info">
+                                        <h6 class="alert-heading">
+                                            <i class="fas fa-mobile-alt"></i> Détails Wave
+                                        </h6>
+                                        <hr>
+                                        
+                                        {% if payment.wave_payment_code %}
+                                            <p class="mb-2">
+                                                <strong>Code de paiement Wave:</strong>
+                                                <br>
+                                                <code class="bg-white p-2 rounded border" style="font-size: 1.1em; font-weight: bold;">
+                                                    {{ payment.wave_payment_code }}
+                                                </code>
+                                            </p>
+                                        {% endif %}
+                                        
+                                        {% if payment.wave_transaction_id %}
+                                            <p class="mb-2">
+                                                <strong>ID Transaction Wave:</strong>
+                                                <br>
+                                                <code class="bg-white p-2 rounded border" style="font-size: 1.1em; font-weight: bold;">
+                                                    {{ payment.wave_transaction_id }}
+                                                </code>
+                                            </p>
+                                        {% endif %}
+                                        
+                                        {% if payment.wave_phone_number %}
+                                            <p class="mb-2">
+                                                <strong>Numéro Wave:</strong>
+                                                <code class="bg-white p-1 rounded">{{ payment.wave_phone_number }}</code>
+                                            </p>
+                                        {% endif %}
+                                        
+                                        {% if payment.customer_name %}
+                                            <p class="mb-2">
+                                                <strong>Nom du client:</strong> {{ payment.customer_name }}
+                                            </p>
+                                        {% endif %}
+                                        
+                                        {% if payment.customer_phone %}
+                                            <p class="mb-2">
+                                                <strong>Téléphone client:</strong> {{ payment.customer_phone }}
+                                            </p>
+                                        {% endif %}
+                                        
+                                        <div class="mt-3">
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle"></i>
+                                                Utilisez ces informations pour vérifier le paiement sur Wave.
+                                            </small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Statut du paiement -->
+                                <p><strong>Statut Wave:</strong> 
+                                    {% if payment.status == 'pending' %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% elif payment.status == 'completed' %}
+                                        <span class="badge bg-success">Complété</span>
+                                    {% elif payment.status == 'failed' %}
+                                        <span class="badge bg-danger">Échoué</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ payment.get_status_display }}</span>
+                                    {% endif %}
+                                </p>
+                                
+                                {% if payment.completed_at %}
+                                    <p><strong>Complété le:</strong> {{ payment.completed_at|date:"d/m/Y H:i" }}</p>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if order.paid_at %}
+                                <p><strong>Payé le:</strong> {{ order.paid_at|date:"d/m/Y H:i" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Dates -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Dates</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Créée le:</strong> {{ order.created_at|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Modifiée le:</strong> {{ order.updated_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

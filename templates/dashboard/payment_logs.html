@@ -1,0 +1,163 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Logs des paiements{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Logs des paiements</h1>
+                <a href="{% url 'dashboard:payments' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour aux paiements
+                </a>
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="event" class="form-label">Événement</label>
+                            <select name="event" id="event" class="form-select">
+                                <option value="">Tous les événements</option>
+                                {% for event in events %}
+                                    <option value="{{ event }}" {% if event_filter == event %}selected{% endif %}>
+                                        {{ event|title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_from" class="form-label">Date de début</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ date_from }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_to" class="form-label">Date de fin</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ date_to }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Filtrer
+                                </button>
+                                <a href="{% url 'dashboard:payment_logs' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Effacer
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Liste des logs -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Historique des événements</h5>
+                </div>
+                <div class="card-body">
+                    {% if logs %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date/Heure</th>
+                                        <th>Paiement</th>
+                                        <th>Commande</th>
+                                        <th>Événement</th>
+                                        <th>Message</th>
+                                        <th>Données</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs %}
+                                    <tr>
+                                        <td>
+                                            <div class="small">
+                                                {{ log.created_at|date:"d/m/Y" }}<br>
+                                                <span class="text-muted">{{ log.created_at|time:"H:i:s" }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="small">
+                                                <strong>{{ log.payment.payment_id }}</strong><br>
+                                                <span class="text-muted">{{ log.payment.amount }} {{ log.payment.currency }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="small">
+                                                <strong>{{ log.payment.order.order_number }}</strong><br>
+                                                <span class="text-muted">{{ log.payment.order.user.username }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ log.event|title }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="small">{{ log.message }}</div>
+                                        </td>
+                                        <td>
+                                            {% if log.data %}
+                                                <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#data-{{ log.id }}" aria-expanded="false">
+                                                    <i class="fas fa-eye"></i> Voir
+                                                </button>
+                                                <div class="collapse mt-2" id="data-{{ log.id }}">
+                                                    <div class="card card-body small">
+                                                        <pre>{{ log.data|pprint }}</pre>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if logs.has_other_pages %}
+                        <nav aria-label="Pagination des logs">
+                            <ul class="pagination justify-content-center">
+                                {% if logs.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if event_filter %}&event={{ event_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Premier</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.previous_page_number }}{% if event_filter %}&event={{ event_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Précédent</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ logs.number }} sur {{ logs.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if logs.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.next_page_number }}{% if event_filter %}&event={{ event_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Suivant</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ logs.paginator.num_pages }}{% if event_filter %}&event={{ event_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Dernier</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Aucun log trouvé</h5>
+                            <p class="text-muted">Aucun événement de paiement ne correspond à vos critères de recherche.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

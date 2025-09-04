@@ -1,0 +1,513 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard Admin - Ecom Maillot{% endblock %}</title>
+    
+    <!-- Favicon - Icône du site -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+    <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- CSS personnalisé du Dashboard -->
+    <link rel="stylesheet" href="{% static 'dashboard/css/custom.css' %}">
+    
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 2px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .top-navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .stat-card-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .stat-card-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .stat-card-warning {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .table-responsive {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .btn-custom {
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .search-box {
+            border-radius: 25px;
+            border: 2px solid #e9ecef;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0">
+                <div class="sidebar p-3">
+                    <div class="text-center mb-4">
+                        <h4><i class="fas fa-tachometer-alt"></i> Dashboard</h4>
+                        <small>Ecom Maillot</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'dashboard:home' %}">
+                            <i class="fas fa-home"></i> Accueil
+                        </a>
+                        
+                        {% if user.is_staff %}
+                        <!-- Navigation pour les administrateurs -->
+                        <div class="mt-3">
+                            <small class="text-muted">GESTION</small>
+                        </div>
+                        
+                        <a class="nav-link {% if 'products' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:products' %}">
+                            <i class="fas fa-tshirt"></i> Produits
+                        </a>
+                        
+                        <a class="nav-link {% if 'categories' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:categories' %}">
+                            <i class="fas fa-tags"></i> Catégories
+                        </a>
+                        
+                        <a class="nav-link {% if 'teams' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:teams' %}">
+                            <i class="fas fa-users"></i> Équipes
+                        </a>
+                        
+                        <a class="nav-link {% if 'orders' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:orders' %}">
+                            <i class="fas fa-shopping-cart"></i> Commandes
+                            <span class="badge bg-danger ms-auto" id="new-orders-badge" style="display: none;">0</span>
+                        </a>
+                        
+                        <a class="nav-link {% if 'users' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:users' %}">
+                            <i class="fas fa-user-friends"></i> Utilisateurs
+                        </a>
+                        
+                        <a class="nav-link {% if 'customizations' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:customizations' %}">
+                            <i class="fas fa-palette"></i> Personnalisations
+                        </a>
+                        
+                        <a class="nav-link {% if 'payments' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:payments' %}">
+                            <i class="fas fa-credit-card"></i> Paiements
+                            <span class="badge bg-warning ms-auto" id="pending-payments-badge" style="display: none;">0</span>
+                        </a>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">ANALYSES</small>
+                        </div>
+                        
+                        <a class="nav-link {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:analytics' %}">
+                            <i class="fas fa-chart-line"></i> Rapports
+                        </a>
+                        {% else %}
+                        <!-- Navigation pour les utilisateurs normaux -->
+                        <div class="mt-3">
+                            <small class="text-muted">MES COMMANDES</small>
+                        </div>
+                        
+                        <a class="nav-link {% if 'user_orders' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:user_orders' %}">
+                            <i class="fas fa-shopping-cart"></i> Mes Commandes
+                        </a>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">BOUTIQUE</small>
+                        </div>
+                        
+                        <a class="nav-link" href="{% url 'products:product_list' %}">
+                            <i class="fas fa-store"></i> Voir les Produits
+                        </a>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">SYSTÈME</small>
+                        </div>
+                        
+                        <a class="nav-link {% if 'settings' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'dashboard:settings' %}">
+                            <i class="fas fa-cog"></i> Paramètres
+                        </a>
+                        
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-external-link-alt"></i> Voir le site
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 px-0">
+                <div class="main-content">
+                    <!-- Top Navbar -->
+                    <div class="top-navbar">
+                        <div class="container-fluid">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h5 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h5>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Indicateur de notifications -->
+                                        <div class="position-relative me-3">
+                                            <button class="btn btn-outline-primary btn-sm" id="notifications-toggle" title="Notifications">
+                                                <i class="fas fa-bell"></i>
+                                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifications-count" style="display: none;">
+                                                    0
+                                                </span>
+                                            </button>
+                                        </div>
+                                        
+                                        <span class="me-3">
+                                            <i class="fas fa-user-circle"></i>
+                                            {{ user.get_full_name|default:user.username }}
+                                        </span>
+                                        {% if user.is_superuser %}
+                                        <a href="/django-admin/" class="btn btn-outline-secondary btn-sm me-2" title="Admin Django (accès d'urgence)">
+                                            <i class="fas fa-tools"></i> Admin
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'account_logout' %}" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Page Content -->
+                    <div class="container-fluid p-4">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Container pour les notifications toast -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toast-container">
+        <!-- Les notifications toast seront ajoutées ici dynamiquement -->
+    </div>
+    
+    <!-- Système de notifications en temps réel -->
+    <script>
+    class DashboardNotifications {
+        constructor() {
+            this.lastCheck = new Date().toISOString();
+            this.pollingInterval = 30000; // 30 secondes
+            this.isPolling = false;
+            this.notificationSound = null;
+            
+            this.init();
+        }
+        
+        init() {
+            // Créer le son de notification
+            this.createNotificationSound();
+            
+            // Démarrer le polling
+            this.startPolling();
+            
+            // Arrêter le polling quand l'onglet n'est pas visible
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.stopPolling();
+                } else {
+                    this.startPolling();
+                }
+            });
+        }
+        
+        createNotificationSound() {
+            // Créer un son de notification simple
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            this.notificationSound = () => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            };
+        }
+        
+        startPolling() {
+            if (this.isPolling) return;
+            
+            this.isPolling = true;
+            this.checkForNotifications();
+            
+            // Vérifier toutes les 30 secondes
+            this.pollingTimer = setInterval(() => {
+                this.checkForNotifications();
+            }, this.pollingInterval);
+        }
+        
+        stopPolling() {
+            this.isPolling = false;
+            if (this.pollingTimer) {
+                clearInterval(this.pollingTimer);
+            }
+        }
+        
+        async checkForNotifications() {
+            try {
+                const response = await fetch(`{% url 'dashboard:notifications_api' %}?last_check=${this.lastCheck}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Mettre à jour le timestamp
+                    this.lastCheck = data.last_check;
+                    
+                    // Afficher les nouvelles notifications
+                    if (data.notifications && data.notifications.length > 0) {
+                        data.notifications.forEach(notification => {
+                            this.showNotification(notification);
+                        });
+                        
+                        // Jouer le son de notification
+                        if (this.notificationSound) {
+                            this.notificationSound();
+                        }
+                    }
+                    
+                    // Mettre à jour les statistiques en temps réel
+                    this.updateStats(data.stats);
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification des notifications:', error);
+            }
+        }
+        
+        showNotification(notification) {
+            const toastContainer = document.getElementById('toast-container');
+            const toastId = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            
+            const toastHTML = `
+                <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="8000">
+                    <div class="toast-header bg-${notification.color} text-white">
+                        <i class="${notification.icon} me-2"></i>
+                        <strong class="me-auto">${notification.title}</strong>
+                        <small class="text-white-50">${this.formatTime(notification.created_at)}</small>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="mb-1">${notification.message}</p>
+                                ${notification.amount ? `<small class="text-muted">Montant: ${notification.amount.toLocaleString()} FCFA</small>` : ''}
+                            </div>
+                            ${notification.order_id ? `
+                                <a href="{% url 'dashboard:order_detail' 0 %}" class="btn btn-sm btn-outline-primary" onclick="this.href = this.href.replace('0', '${notification.order_id}')">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+            
+            // Afficher le toast
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Supprimer le toast du DOM après qu'il soit caché
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+        
+        updateStats(stats) {
+            // Mettre à jour les statistiques en temps réel si elles existent
+            const statsElements = {
+                'total-orders-today': stats.total_orders_today,
+                'pending-orders': stats.pending_orders,
+                'pending-payments': stats.pending_payments,
+                'total-revenue-today': stats.total_revenue_today
+            };
+            
+            Object.entries(statsElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    // Animation de mise à jour
+                    element.style.transform = 'scale(1.1)';
+                    element.style.transition = 'transform 0.3s ease';
+                    
+                    setTimeout(() => {
+                        element.textContent = value.toLocaleString();
+                        element.style.transform = 'scale(1)';
+                    }, 150);
+                }
+            });
+            
+            // Mettre à jour les badges de notification dans la navigation
+            this.updateNavigationBadges(stats);
+        }
+        
+        updateNavigationBadges(stats) {
+            // Badge pour les nouvelles commandes
+            const newOrdersBadge = document.getElementById('new-orders-badge');
+            if (newOrdersBadge) {
+                if (stats.pending_orders > 0) {
+                    newOrdersBadge.textContent = stats.pending_orders;
+                    newOrdersBadge.style.display = 'inline-block';
+                } else {
+                    newOrdersBadge.style.display = 'none';
+                }
+            }
+            
+            // Badge pour les paiements en attente
+            const pendingPaymentsBadge = document.getElementById('pending-payments-badge');
+            if (pendingPaymentsBadge) {
+                if (stats.pending_payments > 0) {
+                    pendingPaymentsBadge.textContent = stats.pending_payments;
+                    pendingPaymentsBadge.style.display = 'inline-block';
+                } else {
+                    pendingPaymentsBadge.style.display = 'none';
+                }
+            }
+            
+            // Badge principal de notifications
+            const notificationsCount = document.getElementById('notifications-count');
+            if (notificationsCount) {
+                const totalNotifications = stats.pending_orders + stats.pending_payments;
+                if (totalNotifications > 0) {
+                    notificationsCount.textContent = totalNotifications;
+                    notificationsCount.style.display = 'inline-block';
+                } else {
+                    notificationsCount.style.display = 'none';
+                }
+            }
+        }
+        
+        formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) { // Moins d'une minute
+                return 'À l\'instant';
+            } else if (diff < 3600000) { // Moins d'une heure
+                const minutes = Math.floor(diff / 60000);
+                return `Il y a ${minutes} min`;
+            } else if (diff < 86400000) { // Moins d'un jour
+                const hours = Math.floor(diff / 3600000);
+                return `Il y a ${hours}h`;
+            } else {
+                return date.toLocaleDateString('fr-FR');
+            }
+        }
+    }
+    
+    // Initialiser le système de notifications quand la page est chargée
+    document.addEventListener('DOMContentLoaded', function() {
+        // Vérifier si l'utilisateur est sur le dashboard
+        if (window.location.pathname.startsWith('/dashboard/')) {
+            window.dashboardNotifications = new DashboardNotifications();
+        }
+    });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

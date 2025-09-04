@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facture {{ order.order_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .company-info h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 28px;
+        }
+        .company-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .invoice-info {
+            text-align: right;
+        }
+        .invoice-info h2 {
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+        .invoice-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .client-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .client-info h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th,
+        .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .items-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .items-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .total-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .total-table {
+            width: 300px;
+            border-collapse: collapse;
+        }
+        .total-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .total-table .total-row {
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-pending { background-color: #ffc107; color: #000; }
+        .status-processing { background-color: #17a2b8; color: white; }
+        .status-shipped { background-color: #6f42c1; color: white; }
+        .status-delivered { background-color: #28a745; color: white; }
+        .status-cancelled { background-color: #dc3545; color: white; }
+        .status-paid { background-color: #28a745; color: white; }
+        .status-failed { background-color: #dc3545; color: white; }
+        .customization-item {
+            font-size: 12px;
+            color: #666;
+            margin: 2px 0;
+        }
+        @media print {
+            body { background-color: white; }
+            .invoice-container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="company-info">
+                <h1>ORAPIDE SHOP</h1>
+                <p>Vente de maillots de football</p>
+                <p>Email: contact@orapide.shop</p>
+                <p>Téléphone: +225 XX XX XX XX</p>
+                <p>Site web: www.orapide.shop</p>
+            </div>
+            <div class="invoice-info">
+                <h2>FACTURE</h2>
+                <p><strong>N° Commande:</strong> {{ order.order_number }}</p>
+                <p><strong>Date:</strong> {{ order.created_at|date:"d/m/Y" }}</p>
+                <p><strong>Statut:</strong> 
+                    <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+                </p>
+                <p><strong>Paiement:</strong> 
+                    <span class="status-badge status-{{ order.payment_status }}">{{ order.get_payment_status_display }}</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Informations client -->
+        <div class="client-info">
+            <h3>Facturé à:</h3>
+            <p><strong>{{ order.user.get_full_name|default:order.user.username }}</strong></p>
+            <p>Email: {{ order.user.email }}</p>
+            {% if order.shipping_address %}
+                <p>{{ order.shipping_address.street_address }}</p>
+                {% if order.shipping_address.apartment_address %}
+                    <p>{{ order.shipping_address.apartment_address }}</p>
+                {% endif %}
+                <p>{{ order.shipping_address.city }}, {{ order.shipping_address.country }}</p>
+                <p>Téléphone: {{ order.shipping_address.phone_number }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Articles -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Taille</th>
+                    <th>Quantité</th>
+                    <th>Prix unitaire</th>
+                    <th>Personnalisations</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product_name }}</strong>
+                        {% if item.product %}
+                            <br><small>{{ item.product.category.name }} - {{ item.product.team.name }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.size|default:"-" }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.price }} FCFA</td>
+                    <td>
+                        {% for customization in item.customizations.all %}
+                            <div class="customization-item">
+                                {% if customization.customization.customization_type == 'name' and customization.custom_text %}
+                                    Nom: "{{ customization.custom_text }}" (+{{ customization.price }} FCFA)
+                                {% else %}
+                                    {{ customization.customization.name }} (+{{ customization.price }} FCFA)
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <span class="customization-item">Aucune</span>
+                        {% endfor %}
+                    </td>
+                    <td><strong>{{ item.total_price }} FCFA</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totaux -->
+        <div class="total-section">
+            <table class="total-table">
+                <tr>
+                    <td>Sous-total:</td>
+                    <td>{{ order.subtotal }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Frais de livraison:</td>
+                    <td>{{ order.shipping_cost }} FCFA</td>
+                </tr>
+                <tr class="total-row">
+                    <td>TOTAL:</td>
+                    <td>{{ order.total }} FCFA</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Informations de paiement -->
+        {% if order.payment_method %}
+        <div style="margin-top: 30px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+            <h4>Informations de paiement</h4>
+            <p><strong>Méthode de paiement:</strong> 
+                {% if order.payment_method == 'paydunya' %}
+                    PayDunya
+                {% elif order.payment_method == 'wave_direct' %}
+                    Wave Direct
+                {% else %}
+                    {{ order.payment_method }}
+                {% endif %}
+            </p>
+            {% if order.payment_id %}
+                <p><strong>ID de transaction:</strong> {{ order.payment_id }}</p>
+            {% endif %}
+            {% if order.paid_at %}
+                <p><strong>Date de paiement:</strong> {{ order.paid_at|date:"d/m/Y H:i" }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Notes -->
+        {% if order.notes %}
+        <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px;">
+            <h4>Notes</h4>
+            <p>{{ order.notes }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Pied de page -->
+        <div class="footer">
+            <p>Merci pour votre commande !</p>
+            <p>Pour toute question, contactez-nous à contact@orapide.shop</p>
+            <p>Cette facture a été générée automatiquement le {{ "now"|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+</body>
+</html>
