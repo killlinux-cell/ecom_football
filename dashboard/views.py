@@ -145,6 +145,8 @@ def dashboard_orders(request):
     
     # Actions en lot
     if request.method == 'POST':
+        from orders.sync_utils import cancel_order_and_payment
+        
         action = request.POST.get('action')
         order_ids = request.POST.getlist('order_ids')
         
@@ -162,8 +164,16 @@ def dashboard_orders(request):
                 Order.objects.filter(id__in=order_ids).update(status='delivered')
                 messages.success(request, f'{len(order_ids)} commande(s) marquée(s) comme livrée(s).')
             elif action == 'mark_cancelled':
-                Order.objects.filter(id__in=order_ids).update(status='cancelled')
-                messages.success(request, f'{len(order_ids)} commande(s) marquée(s) comme annulée(s).')
+                # Utiliser la synchronisation pour les annulations
+                cancelled_count = 0
+                for order_id in order_ids:
+                    try:
+                        order = Order.objects.get(id=order_id)
+                        cancel_order_and_payment(order, updated_by=request.user)
+                        cancelled_count += 1
+                    except Order.DoesNotExist:
+                        continue
+                messages.success(request, f'{cancelled_count} commande(s) et paiement(s) associé(s) annulé(s) avec succès.')
             
             return redirect('dashboard:orders')
     
@@ -219,6 +229,8 @@ def dashboard_order_detail(request, order_id):
         pass
     
     if request.method == 'POST':
+        from orders.sync_utils import sync_order_payment_status, cancel_order_and_payment
+        
         # Mise à jour du statut de la commande
         new_status = request.POST.get('status')
         new_payment_status = request.POST.get('payment_status')
@@ -226,37 +238,32 @@ def dashboard_order_detail(request, order_id):
         
         # Sauvegarder les anciens statuts pour comparaison
         old_payment_status = order.payment_status
+        old_status = order.status
         
-        if new_status:
-            order.status = new_status
-        if new_payment_status:
-            order.payment_status = new_payment_status
-        if notes:
-            order.notes = notes
-        
-        order.save()
-        
-        # Si le statut de paiement a changé vers "paid", mettre à jour l'objet Payment
-        if new_payment_status == 'paid' and old_payment_status != 'paid':
-            try:
-                payment = Payment.objects.get(order=order)
-                payment.status = 'completed'
-                payment.completed_at = timezone.now()
-                payment.save()
-                
-                # Log de la mise à jour
-                PaymentLog.objects.create(
-                    payment=payment,
-                    event='payment_status_updated_by_admin',
-                    message=f'Statut de paiement mis à jour par l\'admin: {old_payment_status} -> {new_payment_status}',
-                    data={'updated_by': request.user.username, 'old_status': old_payment_status, 'new_status': new_payment_status}
-                )
-                
-                messages.success(request, 'Commande et paiement mis à jour avec succès!')
-            except Payment.DoesNotExist:
-                messages.success(request, 'Commande mise à jour avec succès!')
+        # Gestion spéciale pour les annulations
+        if new_status == 'cancelled' and old_status != 'cancelled':
+            cancel_order_and_payment(order, updated_by=request.user)
+            messages.success(request, 'Commande et paiement annulés avec succès!')
         else:
-            messages.success(request, 'Commande mise à jour avec succès!')
+            # Mise à jour normale
+            if new_status:
+                order.status = new_status
+            if new_payment_status:
+                order.payment_status = new_payment_status
+            if notes:
+                order.notes = notes
+            
+            order.save()
+            
+            # Synchroniser avec le paiement si le statut de paiement a changé
+            if new_payment_status and new_payment_status != old_payment_status:
+                sync_success = sync_order_payment_status(order, new_payment_status, updated_by=request.user)
+                if sync_success:
+                    messages.success(request, 'Commande et paiement synchronisés avec succès!')
+                else:
+                    messages.success(request, 'Commande mise à jour avec succès!')
+            else:
+                messages.success(request, 'Commande mise à jour avec succès!')
         
         return redirect('dashboard:order_detail', order_id=order.id)
     
@@ -656,6 +663,8 @@ def dashboard_payments(request):
     
     # Actions en lot
     if request.method == 'POST':
+        from orders.sync_utils import validate_payment_and_order, sync_payment_order_status
+        
         action = request.POST.get('action')
         payment_ids = request.POST.getlist('payment_ids')
         
@@ -664,41 +673,27 @@ def dashboard_payments(request):
                 updated = 0
                 for payment in Payment.objects.filter(id__in=payment_ids, payment_method='wave_direct', status='pending'):
                     if payment.wave_transaction_id:
-                        payment.status = 'completed'
-                        payment.completed_at = timezone.now()
-                        payment.save()
-                        
-                        # Mettre à jour le statut de la commande
-                        order = payment.order
-                        order.payment_status = 'paid'
-                        order.paid_at = timezone.now()
-                        order.save()
-                        
-                        # Log de la validation
-                        PaymentLog.objects.create(
-                            payment=payment,
-                            event='wave_payment_validated_by_admin',
-                            message=f'Paiement Wave validé par l\'admin: {payment.wave_transaction_id}',
-                            data={'validated_by': request.user.username}
-                        )
-                        
+                        validate_payment_and_order(payment, updated_by=request.user)
                         updated += 1
                 
                 if updated == 1:
-                    messages.success(request, "1 paiement Wave a été validé.")
+                    messages.success(request, "1 paiement Wave et commande associée ont été validés.")
                 else:
-                    messages.success(request, f"{updated} paiements Wave ont été validés.")
+                    messages.success(request, f"{updated} paiements Wave et commandes associées ont été validés.")
                     
             elif action == 'mark_completed':
-                updated = Payment.objects.filter(id__in=payment_ids).update(
-                    status='completed', 
-                    completed_at=timezone.now()
-                )
-                messages.success(request, f"{updated} paiement(s) marqué(s) comme terminé(s).")
+                updated = 0
+                for payment in Payment.objects.filter(id__in=payment_ids):
+                    sync_payment_order_status(payment, 'completed', updated_by=request.user)
+                    updated += 1
+                messages.success(request, f"{updated} paiement(s) et commande(s) associée(s) marqué(s) comme terminé(s).")
                 
             elif action == 'mark_failed':
-                updated = Payment.objects.filter(id__in=payment_ids).update(status='failed')
-                messages.success(request, f"{updated} paiement(s) marqué(s) comme échoué(s).")
+                updated = 0
+                for payment in Payment.objects.filter(id__in=payment_ids):
+                    sync_payment_order_status(payment, 'failed', updated_by=request.user)
+                    updated += 1
+                messages.success(request, f"{updated} paiement(s) et commande(s) associée(s) marqué(s) comme échoué(s).")
             
             return redirect('dashboard:payments')
     

@@ -130,6 +130,8 @@ def order_list(request):
 @login_required
 def order_cancel(request, order_id):
     """Annuler une commande"""
+    from orders.sync_utils import cancel_order_and_payment
+    
     # Permettre aux administrateurs d'annuler n'importe quelle commande
     if request.user.is_staff or request.user.is_superuser:
         order = get_object_or_404(Order, id=order_id)
@@ -138,9 +140,9 @@ def order_cancel(request, order_id):
         order = get_object_or_404(Order, id=order_id, user=request.user)
     
     if order.can_be_cancelled:
-        order.status = 'cancelled'
-        order.save()
-        messages.success(request, f"Commande {order.order_number} annulée avec succès.")
+        # Utiliser la fonction de synchronisation pour annuler commande et paiement
+        cancel_order_and_payment(order, updated_by=request.user)
+        messages.success(request, f"Commande {order.order_number} et paiement associé annulés avec succès.")
     else:
         messages.error(request, "Cette commande ne peut pas être annulée.")
     
