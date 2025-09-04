@@ -703,7 +703,13 @@ def dashboard_payments(request):
         total=Sum('amount')
     )['total'] or 0
     
-    # Paiements par statut
+    # Compteurs par statut
+    pending_payments_count = payments.filter(status='pending').count()
+    completed_payments_count = payments.filter(status='completed').count()
+    failed_payments_count = payments.filter(status='failed').count()
+    cancelled_payments_count = payments.filter(status='cancelled').count()
+    
+    # Paiements par statut (pour les graphiques)
     payments_by_status = Payment.objects.values('status').annotate(
         count=Count('id'),
         total_amount=Sum('amount')
@@ -712,13 +718,17 @@ def dashboard_payments(request):
     # Paiements Wave en attente
     wave_pending_count = Payment.objects.filter(
         payment_method='wave_direct', 
-        wave_transaction_id=''
+        status='pending'
     ).count()
     
     context = {
         'payments': payments,
         'total_payments': total_payments,
         'total_amount': total_amount,
+        'pending_payments_count': pending_payments_count,
+        'completed_payments_count': completed_payments_count,
+        'failed_payments_count': failed_payments_count,
+        'cancelled_payments_count': cancelled_payments_count,
         'payments_by_status': list(payments_by_status),
         'wave_pending_count': wave_pending_count,
         'status_filter': status_filter,
