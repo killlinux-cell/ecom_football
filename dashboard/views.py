@@ -224,6 +224,9 @@ def dashboard_order_detail(request, order_id):
         new_payment_status = request.POST.get('payment_status')
         notes = request.POST.get('notes', '')
         
+        # Sauvegarder les anciens statuts pour comparaison
+        old_payment_status = order.payment_status
+        
         if new_status:
             order.status = new_status
         if new_payment_status:
@@ -232,7 +235,29 @@ def dashboard_order_detail(request, order_id):
             order.notes = notes
         
         order.save()
-        messages.success(request, 'Commande mise à jour avec succès!')
+        
+        # Si le statut de paiement a changé vers "paid", mettre à jour l'objet Payment
+        if new_payment_status == 'paid' and old_payment_status != 'paid':
+            try:
+                payment = Payment.objects.get(order=order)
+                payment.status = 'completed'
+                payment.completed_at = timezone.now()
+                payment.save()
+                
+                # Log de la mise à jour
+                PaymentLog.objects.create(
+                    payment=payment,
+                    event='payment_status_updated_by_admin',
+                    message=f'Statut de paiement mis à jour par l\'admin: {old_payment_status} -> {new_payment_status}',
+                    data={'updated_by': request.user.username, 'old_status': old_payment_status, 'new_status': new_payment_status}
+                )
+                
+                messages.success(request, 'Commande et paiement mis à jour avec succès!')
+            except Payment.DoesNotExist:
+                messages.success(request, 'Commande mise à jour avec succès!')
+        else:
+            messages.success(request, 'Commande mise à jour avec succès!')
+        
         return redirect('dashboard:order_detail', order_id=order.id)
     
     context = {

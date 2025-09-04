@@ -1,0 +1,164 @@
+/* Corrections spécifiques pour les problèmes mobile */
+
+/* Empêcher la fermeture automatique des modals sur mobile */
+@media (max-width: 768px) {
+    /* Améliorer les interactions tactiles pour les modals */
+    .modal {
+        touch-action: manipulation;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+        max-height: calc(100vh - 1rem);
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - 1rem);
+        overflow-y: auto;
+    }
+    
+    /* Améliorer les boutons sur mobile */
+    .btn {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Améliorer les liens de navigation */
+    .nav-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Empêcher le zoom automatique sur les inputs */
+    input, select, textarea {
+        font-size: 16px;
+    }
+    
+    /* Améliorer les cartes de commandes sur mobile */
+    .card {
+        margin-bottom: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Améliorer les tableaux sur mobile */
+    .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem 0.5rem;
+        vertical-align: middle;
+    }
+    
+    /* Améliorer les badges sur mobile */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Améliorer les boutons d'action */
+    .btn-group .btn {
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Améliorer les formulaires sur mobile */
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        padding: 0.75rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Améliorer les alertes sur mobile */
+    .alert {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.5rem;
+    }
+    
+    /* Améliorer la pagination sur mobile */
+    .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .page-link {
+        min-height: 44px;
+        min-width: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Corrections spécifiques pour les très petits écrans */
+@media (max-width: 576px) {
+    .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    .btn {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Masquer certaines colonnes sur très petit écran */
+    .table .d-none-xs {
+        display: none !important;
+    }
+}
+
+/* Améliorer les interactions tactiles globales */
+@media (hover: none) and (pointer: coarse) {
+    /* Désactiver les effets hover sur mobile */
+    .btn:hover,
+    .card:hover,
+    .nav-link:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    /* Améliorer le feedback tactile */
+    .btn:active,
+    .card:active,
+    .nav-link:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}

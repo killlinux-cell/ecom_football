@@ -19,6 +19,7 @@
     <!-- CSS Mobile -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-fixes.css' %}">
     
     <style>
         :root {
@@ -284,13 +285,16 @@
         
         // Fonctionnalités mobiles
         function initMobileFeatures() {
-            // Fermer le menu mobile quand on clique sur un lien
-            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            // Fermer le menu mobile quand on clique sur un lien (seulement pour la navigation principale)
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link:not([data-bs-toggle]):not([data-bs-target])');
             const navbarCollapse = document.querySelector('.navbar-collapse');
             
             navLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    if (navbarCollapse.classList.contains('show')) {
+                    // Ne fermer que si c'est un lien de navigation simple (pas un modal ou accordéon)
+                    if (navbarCollapse && navbarCollapse.classList.contains('show') && 
+                        !link.hasAttribute('data-bs-toggle') && 
+                        !link.hasAttribute('data-bs-target')) {
                         const bsCollapse = new bootstrap.Collapse(navbarCollapse);
                         bsCollapse.hide();
                     }
