@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-ks99&9o(6@n%y5ukn_+a=
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,orapide.shop,206.72.198.105', cast=lambda v: [s.strip() for s in v.split(',')])
-ALLOWED_HOSTS = ['localhost','127.0.0.1','orapide.shop','www.orapide.shop']
+ALLOWED_HOSTS = ['localhost','127.0.0.1','orapide.shop','www.orapide.shop','testserver']
 
 
 # Application definition

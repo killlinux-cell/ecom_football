@@ -16,6 +16,10 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- CSS Mobile -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+    
     <style>
         :root {
             --primary-color: #1e3a8a;
@@ -238,7 +242,7 @@
                 <div class="col-md-4">
                     <h5>Contact</h5>
                     <ul class="list-unstyled">
-                        <li><i class="fas fa-phone me-2"></i>+225 0123456789</li>
+                        <li><i class="fas fa-phone me-2"></i>+225 0575984322</li>
                         <li><i class="fas fa-envelope me-2"></i>contact@maillots-football.ci</li>
                         <li><i class="fas fa-map-marker-alt me-2"></i>Abidjan, Côte d'Ivoire</li>
                     </ul>
@@ -246,7 +250,7 @@
             </div>
             <hr class="my-4">
             <div class="text-center">
-                <p>&copy; 2024 Maillots Football. Tous droits réservés.</p>
+                <p>&copy; 2025 Maillots Football. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
@@ -273,6 +277,101 @@
         document.addEventListener('DOMContentLoaded', () => {
             const cards = document.querySelectorAll('.card');
             cards.forEach(card => observer.observe(card));
+            
+            // Améliorations mobile
+            initMobileFeatures();
+        });
+        
+        // Fonctionnalités mobiles
+        function initMobileFeatures() {
+            // Fermer le menu mobile quand on clique sur un lien
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            const navbarCollapse = document.querySelector('.navbar-collapse');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (navbarCollapse.classList.contains('show')) {
+                        const bsCollapse = new bootstrap.Collapse(navbarCollapse);
+                        bsCollapse.hide();
+                    }
+                });
+            });
+            
+            // Améliorer les filtres mobile avec accordéon
+            initMobileFilters();
+            
+            // Améliorer les interactions tactiles
+            initTouchInteractions();
+        }
+        
+        // Filtres mobile en accordéon
+        function initMobileFilters() {
+            const filterHeaders = document.querySelectorAll('.card-header');
+            
+            filterHeaders.forEach(header => {
+                if (window.innerWidth <= 991) {
+                    header.setAttribute('data-bs-toggle', 'collapse');
+                    header.setAttribute('data-bs-target', '#' + header.nextElementSibling.id);
+                    header.setAttribute('aria-expanded', 'false');
+                    header.setAttribute('role', 'button');
+                    
+                    if (!header.nextElementSibling.id) {
+                        const id = 'filter-' + Math.random().toString(36).substr(2, 9);
+                        header.nextElementSibling.id = id;
+                        header.setAttribute('data-bs-target', '#' + id);
+                    }
+                    
+                    header.nextElementSibling.classList.add('collapse');
+                }
+            });
+        }
+        
+        // Interactions tactiles améliorées
+        function initTouchInteractions() {
+            // Feedback tactile pour les boutons
+            const buttons = document.querySelectorAll('.btn, .card, .nav-link');
+            
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+                
+                button.addEventListener('touchend', function() {
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+            
+            // Améliorer le scroll sur mobile
+            let isScrolling = false;
+            window.addEventListener('scroll', function() {
+                if (!isScrolling) {
+                    window.requestAnimationFrame(function() {
+                        // Logique de scroll si nécessaire
+                        isScrolling = false;
+                    });
+                }
+                isScrolling = true;
+            });
+        }
+        
+        // Redimensionnement de la fenêtre
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 991) {
+                // Désactiver l'accordéon sur desktop
+                const filterHeaders = document.querySelectorAll('.card-header');
+                filterHeaders.forEach(header => {
+                    header.removeAttribute('data-bs-toggle');
+                    header.removeAttribute('data-bs-target');
+                    header.removeAttribute('aria-expanded');
+                    header.removeAttribute('role');
+                    header.nextElementSibling.classList.remove('collapse');
+                });
+            } else {
+                // Réactiver l'accordéon sur mobile
+                initMobileFilters();
+            }
         });
     </script>
     

@@ -9,10 +9,10 @@
         <!-- Sidebar Filters -->
         <div class="col-lg-3">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header" id="filters-header">
                     <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtres</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="filters-body">
                     <form method="GET" action="{% url 'products:product_list' %}">
                         <!-- Search -->
                         <div class="mb-3">
@@ -110,7 +110,12 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Produits</h2>
                 <div class="d-flex align-items-center">
-                    <span class="text-muted me-3">{{ products.paginator.count }} produit(s) trouvé(s)</span>
+                    <!-- Bouton filtres mobile -->
+                    <button class="btn btn-outline-primary d-lg-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#filters-body" aria-expanded="false" aria-controls="filters-body">
+                        <i class="fas fa-filter me-1"></i>Filtres
+                    </button>
+                    
+                    <span class="text-muted me-3 d-none d-md-inline">{{ products.paginator.count }} produit(s) trouvé(s)</span>
                     <select class="form-select" style="width: auto;">
                         <option>Trier par</option>
                         <option>Prix croissant</option>
@@ -121,11 +126,16 @@
                 </div>
             </div>
             
+            <!-- Compteur mobile -->
+            <div class="d-md-none mb-3">
+                <span class="text-muted">{{ products.paginator.count }} produit(s) trouvé(s)</span>
+            </div>
+            
             <!-- Products -->
             <div class="row">
                 {% for product in products %}
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100">
+                <div class="col-lg-4 col-md-6 col-sm-6 col-12 mb-4">
+                    <div class="card h-100 product-card">
                         {% if product.is_on_sale %}
                             <span class="badge badge-sale">-{{ product.discount_percentage }}%</span>
                         {% endif %}
