@@ -27,7 +27,12 @@ def order_create(request):
                 
                 # Calculer les totaux
                 subtotal = cart.get_total_price()
-                shipping_cost = Decimal('1000')  # Frais de livraison fixes
+                
+                # Calculer les frais de livraison selon les paramètres
+                from core.models import ShippingSettings
+                shipping_settings = ShippingSettings.get_active_settings()
+                shipping_cost = shipping_settings.calculate_shipping_cost(subtotal)
+                
                 total = subtotal + shipping_cost
                 
                 order.subtotal = subtotal
@@ -35,7 +40,14 @@ def order_create(request):
                 order.total = total
                 order.save()
                 
+                # VALIDATION: Vérifier que le panier n'est pas vide
+                if len(cart) == 0:
+                    messages.error(request, "Erreur: Le panier est vide lors de la création de la commande.")
+                    order.delete()
+                    return redirect('cart:cart_detail')
+                
                 # Créer les articles de commande avec personnalisations
+                articles_created = 0
                 for item in cart:
                     # Récupérer le cart_item pour les personnalisations
                     from cart.models import CartItem
@@ -72,6 +84,17 @@ def order_create(request):
                                 quantity=cart_custom.quantity,
                                 price=cart_custom.price
                             )
+                    
+                    articles_created += 1
+                
+                # VALIDATION FINALE: Vérifier qu'au moins un article a été créé
+                if articles_created == 0:
+                    messages.error(request, "Erreur: Aucun article n'a pu être ajouté à la commande.")
+                    order.delete()
+                    return redirect('cart:cart_detail')
+                
+                # Recalculer les totaux pour s'assurer de la cohérence
+                order.recalculate_totals()
                 
                 # Vider le panier
                 cart.clear()

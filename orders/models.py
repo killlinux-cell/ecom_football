@@ -99,6 +99,26 @@ class Order(models.Model):
 
     def get_total_items(self):
         return sum(item.quantity for item in self.items.all())
+    
+    def recalculate_totals(self):
+        """Recalcule les totaux de la commande à partir des articles"""
+        total_articles = sum(item.total_price for item in self.items.all())
+        
+        # Mettre à jour les totaux
+        self.subtotal = total_articles
+        self.total = total_articles + self.shipping_cost
+        self.save()
+        
+        return {
+            'subtotal': self.subtotal,
+            'shipping_cost': self.shipping_cost,
+            'total': self.total
+        }
+    
+    def validate_totals(self):
+        """Valide que les totaux correspondent aux articles"""
+        total_articles = sum(item.total_price for item in self.items.all())
+        return abs(total_articles - self.subtotal) < 0.01
 
 
 class OrderItem(models.Model):

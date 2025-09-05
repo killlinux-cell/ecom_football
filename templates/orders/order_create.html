@@ -2,6 +2,7 @@
 {% load crispy_forms_tags %}
 {% load cart_extras %}
 {% load price_format %}
+{% load shipping_extras %}
 
 {% block title %}Créer une commande - Maillots de Football{% endblock %}
 
@@ -85,7 +86,14 @@
                             <strong>Frais de livraison:</strong>
                         </div>
                         <div class="col-md-4 text-end">
-                            <strong>1 000,00 FCFA</strong>
+                            <strong>
+                                {% if cart.get_total_price|is_free_shipping %}
+                                    <span class="text-success">Gratuit</span>
+                                {% else %}
+                                    {% get_shipping_settings as shipping_settings %}
+                                    {{ shipping_settings.delivery_fee|price_format }}
+                                {% endif %}
+                            </strong>
                         </div>
                     </div>
                     
@@ -96,7 +104,10 @@
                             <h5>Total:</h5>
                         </div>
                         <div class="col-md-4 text-end">
-                            <h5 class="price">{{ cart.get_total_price|add:1000|price_format }}</h5>
+                            <h5 class="price">
+                                {% calculate_shipping_cost cart.get_total_price as shipping_cost %}
+                                {{ cart.get_total_price|add:shipping_cost|price_format }}
+                            </h5>
                         </div>
                     </div>
                 </div>
