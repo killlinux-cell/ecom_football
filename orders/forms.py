@@ -3,9 +3,20 @@ from .models import Order, Address
 
 
 class OrderCreateForm(forms.ModelForm):
+    payment_method = forms.ChoiceField(
+        choices=[
+            ('paydunya', 'PayDunya (Carte bancaire)'),
+            ('wave_direct', 'Wave Direct'),
+            ('cash_on_delivery', 'Paiement à la livraison'),
+        ],
+        widget=forms.RadioSelect,
+        initial='paydunya',
+        label='Méthode de paiement'
+    )
+    
     class Meta:
         model = Order
-        fields = ['shipping_address', 'notes']
+        fields = ['shipping_address', 'notes', 'payment_method']
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Notes spéciales pour la livraison...'}),
         }

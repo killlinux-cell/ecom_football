@@ -46,6 +46,13 @@ class Order(models.Model):
         ('paid', 'Payé'),
         ('failed', 'Échoué'),
         ('refunded', 'Remboursé'),
+        ('cash_on_delivery', 'Paiement à la livraison'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('paydunya', 'PayDunya'),
+        ('wave_direct', 'Wave Direct'),
+        ('cash_on_delivery', 'Paiement à la livraison'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', verbose_name="Utilisateur")
@@ -57,7 +64,7 @@ class Order(models.Model):
     shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, verbose_name="Adresse de livraison")
     
     # Informations de paiement
-    payment_method = models.CharField(max_length=50, default='wave', verbose_name="Méthode de paiement")
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHOD_CHOICES, default='paydunya', verbose_name="Méthode de paiement")
     payment_id = models.CharField(max_length=100, blank=True, verbose_name="ID de paiement")
     
     # Totaux
@@ -140,9 +147,16 @@ class OrderItem(models.Model):
     def save(self, *args, **kwargs):
         if not self.product_name:
             self.product_name = self.product.name
+        # Ne pas recalculer total_price s'il est déjà défini (avec personnalisations)
         if not self.total_price:
             self.total_price = self.price * self.quantity
         super().save(*args, **kwargs)
+    
+    def get_total_with_customizations(self):
+        """Calcule le prix total avec personnalisations"""
+        base_price = self.price * self.quantity
+        customization_price = sum(cust.price for cust in self.customizations.all())
+        return base_price + customization_price
 
 
 class OrderItemCustomization(models.Model):

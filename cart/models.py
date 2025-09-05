@@ -51,7 +51,7 @@ class CartItem(models.Model):
     @property
     def total_price(self):
         """Calcule le prix total pour cet article (produit + personnalisations)"""
-        base_price = self.product.current_price * self.quantity
+        base_price = self.product.price * self.quantity
         customization_price = sum(cust.price for cust in self.customizations.all())
         return base_price + customization_price
     
@@ -67,7 +67,7 @@ class CartItem(models.Model):
     @property
     def base_price(self):
         """Calcule le prix de base du produit"""
-        return self.product.current_price * self.quantity
+        return self.product.price * self.quantity
 
     def save(self, *args, **kwargs):
         # Vérifier que la taille est disponible

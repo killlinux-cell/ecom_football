@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.http import JsonResponse
+from django.utils import timezone
 from decimal import Decimal
 from .models import Order, OrderItem, Address, OrderItemCustomization
 from .forms import OrderCreateForm, AddressForm
@@ -57,13 +59,10 @@ def order_create(request):
                         size=item['size']
                     ).first()
                     
-                    # Calculer le prix total avec personnalisations
-                    if cart_item:
-                        total_price = cart_item.total_price
-                    else:
-                        total_price = item['total_price']
+                    # Calculer le prix de base (sans personnalisations)
+                    base_price = item['price'] * item['quantity']
                     
-                    # Créer l'article de commande
+                    # Créer l'article de commande avec le prix de base
                     order_item = OrderItem.objects.create(
                         order=order,
                         product=item['product'],
@@ -71,7 +70,7 @@ def order_create(request):
                         size=item['size'],
                         quantity=item['quantity'],
                         price=item['price'],
-                        total_price=total_price
+                        total_price=base_price  # Prix de base seulement
                     )
                     
                     # Copier les personnalisations du cart_item vers l'order_item
@@ -84,6 +83,10 @@ def order_create(request):
                                 quantity=cart_custom.quantity,
                                 price=cart_custom.price
                             )
+                        
+                        # Mettre à jour le total_price avec les personnalisations
+                        order_item.total_price = order_item.get_total_with_customizations()
+                        order_item.save()
                     
                     articles_created += 1
                 
@@ -103,9 +106,17 @@ def order_create(request):
                 
                 # Rediriger selon la méthode de paiement choisie
                 payment_method = request.POST.get('payment_method', 'paydunya')
+                order.payment_method = payment_method
+                order.save()
+                
                 if payment_method == 'wave_direct':
                     return redirect('payments:wave_direct_payment', order_id=order.id)
-                
+                elif payment_method == 'cash_on_delivery':
+                    # Pour le paiement à la livraison, marquer comme en attente de paiement
+                    order.payment_status = 'cash_on_delivery'
+                    order.save()
+                    messages.info(request, "Votre commande sera payée lors de la livraison.")
+                    return redirect('orders:order_detail', order_id=order.id)
                 else:
                     return redirect('payments:process_payment', order_id=order.id)
     else:
@@ -116,6 +127,36 @@ def order_create(request):
         'form': form,
     }
     return render(request, 'orders/order_create.html', context)
+
+
+@login_required
+def mark_cash_payment_received(request, order_id):
+    """Marquer une commande comme payée à la livraison (pour l'admin)"""
+    if not request.user.is_staff:
+        messages.error(request, "Accès non autorisé.")
+        return redirect('core:home')
+    
+    order = get_object_or_404(Order, id=order_id)
+    
+    if order.payment_method == 'cash_on_delivery' and order.payment_status == 'cash_on_delivery':
+        order.payment_status = 'paid'
+        order.paid_at = timezone.now()
+        order.save()
+        
+        messages.success(request, f"Commande {order.order_number} marquée comme payée.")
+        
+        # Envoyer un email de confirmation si le système email est activé
+        try:
+            from notifications.email_service import get_email_service
+            email_service = get_email_service()
+            if email_service.settings and email_service.settings.send_order_confirmations:
+                email_service.send_order_confirmation(order)
+        except Exception as e:
+            print(f"Erreur envoi email: {str(e)}")
+    else:
+        messages.error(request, "Cette commande ne peut pas être marquée comme payée à la livraison.")
+    
+    return redirect('orders:order_detail', order_id=order.id)
 
 
 @login_required
