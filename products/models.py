@@ -97,6 +97,18 @@ class Product(models.Model):
     def current_price(self):
         """Retourne le prix actuel (promotion ou prix normal)"""
         return self.sale_price if self.sale_price else self.price
+    
+    @property
+    def average_rating(self):
+        """Calcule la note moyenne des avis"""
+        from django.db.models import Avg
+        avg_rating = self.reviews.aggregate(avg_rating=Avg('rating'))['avg_rating']
+        return round(avg_rating, 1) if avg_rating else 0.0
+    
+    @property
+    def total_reviews(self):
+        """Retourne le nombre total d'avis"""
+        return self.reviews.count()
 
     @property
     def discount_percentage(self):

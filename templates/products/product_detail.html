@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load price_format %}
 
 {% block title %}{{ product.name }} - Maillots de Football{% endblock %}
@@ -262,6 +263,154 @@
         </div>
     </div>
     
+    <!-- Section des avis -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>Avis clients
+                        {% if reviews %}
+                            <span class="badge bg-primary ms-2">{{ reviews.count }} avis</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if reviews %}
+                        <!-- Statistiques des avis -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <h3 class="mb-0">{{ product.average_rating|floatformat:1 }}</h3>
+                                        <div class="text-warning">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= product.average_rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <small class="text-muted">{{ reviews.count }} avis</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Répartition des notes -->
+                                <div class="d-flex align-items-center mb-1">
+                                    <small class="me-2">5★</small>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    </div>
+                                    <small class="text-muted">1</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <small class="me-2">4★</small>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    </div>
+                                    <small class="text-muted">1</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <small class="me-2">3★</small>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    </div>
+                                    <small class="text-muted">1</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <small class="me-2">2★</small>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    </div>
+                                    <small class="text-muted">1</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <small class="me-2">1★</small>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    </div>
+                                    <small class="text-muted">1</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Liste des avis -->
+                        <div class="reviews-list">
+                            {% for review in reviews %}
+                                <div class="review-item border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">{{ review.user.first_name|default:review.user.username }}</h6>
+                                            <div class="text-warning">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                                    </div>
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">Aucun avis pour ce produit</h6>
+                            <p class="text-muted">Soyez le premier à laisser un avis !</p>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Formulaire d'ajout d'avis -->
+                    {% if user.is_authenticated %}
+                        <div class="mt-4">
+                            <h6>Laisser un avis</h6>
+                            <form method="POST" action="{% url 'products:add_review' product.slug %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="rating" class="form-label">Note</label>
+                                    <div class="rating-input">
+                                        <input type="radio" name="rating" value="5" id="star5" required>
+                                        <label for="star5" class="star">★</label>
+                                        <input type="radio" name="rating" value="4" id="star4">
+                                        <label for="star4" class="star">★</label>
+                                        <input type="radio" name="rating" value="3" id="star3">
+                                        <label for="star3" class="star">★</label>
+                                        <input type="radio" name="rating" value="2" id="star2">
+                                        <label for="star2" class="star">★</label>
+                                        <input type="radio" name="rating" value="1" id="star1">
+                                        <label for="star1" class="star">★</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="comment" class="form-label">Commentaire</label>
+                                    <textarea class="form-control" name="comment" id="comment" rows="3" 
+                                              placeholder="Partagez votre expérience avec ce produit..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-1"></i>Publier l'avis
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="mt-4 text-center">
+                            <p class="text-muted">Vous devez être connecté pour laisser un avis.</p>
+                            <a href="/accounts/login/" class="btn btn-outline-primary">
+                                <i class="fas fa-sign-in-alt me-1"></i>Se connecter
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Produits similaires -->
     {% if similar_products %}
     <div class="row mt-5">
@@ -320,6 +469,10 @@
     <input type="hidden" name="size" id="selectedSize">
     <input type="hidden" name="quantity" id="selectedQuantity">
 </form>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reviews.css' %}">
 {% endblock %}
 
 {% block extra_js %}

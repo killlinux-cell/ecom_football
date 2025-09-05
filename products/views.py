@@ -1,8 +1,10 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django_filters import rest_framework as filters
-from .models import Product, Category, Team
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import Product, Category, Team, Review
 from .filters import ProductFilter
 
 
@@ -167,3 +169,47 @@ def search(request):
         'query': query,
     }
     return render(request, 'products/search.html', context)
+
+
+@login_required
+def add_review(request, slug):
+    """Ajouter un avis sur un produit"""
+    product = get_object_or_404(Product, slug=slug, is_active=True)
+    
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+        
+        # Validation
+        if not rating or not comment:
+            messages.error(request, 'Veuillez remplir tous les champs.')
+            return redirect('products:product_detail', slug=product.slug)
+        
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                raise ValueError()
+        except ValueError:
+            messages.error(request, 'La note doit être entre 1 et 5.')
+            return redirect('products:product_detail', slug=product.slug)
+        
+        # Vérifier si l'utilisateur a déjà laissé un avis
+        existing_review = Review.objects.filter(product=product, user=request.user).first()
+        
+        if existing_review:
+            # Mettre à jour l'avis existant
+            existing_review.rating = rating
+            existing_review.comment = comment
+            existing_review.save()
+            messages.success(request, 'Votre avis a été mis à jour.')
+        else:
+            # Créer un nouvel avis
+            Review.objects.create(
+                product=product,
+                user=request.user,
+                rating=rating,
+                comment=comment
+            )
+            messages.success(request, 'Votre avis a été publié.')
+    
+    return redirect('products:product_detail', slug=product.slug)

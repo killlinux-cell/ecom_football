@@ -378,21 +378,63 @@ def dashboard_product_edit(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
     if request.method == 'POST':
-        # Logique de mise à jour du produit
-        product.name = request.POST.get('name')
-        product.description = request.POST.get('description')
-        product.price = request.POST.get('price')
-        product.sale_price = request.POST.get('sale_price') or None
-        product.stock_quantity = request.POST.get('stock_quantity')
-        product.is_active = request.POST.get('is_active') == 'on'
-        product.is_featured = request.POST.get('is_featured') == 'on'
-        
-        if 'image' in request.FILES:
-            product.image = request.FILES['image']
-        
-        product.save()
-        messages.success(request, 'Produit mis à jour avec succès!')
-        return redirect('dashboard:products')
+        try:
+            with transaction.atomic():
+                from decimal import Decimal
+                
+                # Récupérer et convertir les données
+                name = request.POST.get('name')
+                description = request.POST.get('description')
+                price_str = request.POST.get('price')
+                sale_price_str = request.POST.get('sale_price')
+                stock_quantity_str = request.POST.get('stock_quantity')
+                
+                # Validation et conversion des types
+                if not name:
+                    raise ValueError("Le nom du produit est requis")
+                if not price_str:
+                    raise ValueError("Le prix est requis")
+                if not stock_quantity_str:
+                    raise ValueError("La quantité en stock est requise")
+                
+                # Conversion des types
+                try:
+                    price = Decimal(price_str)
+                except (ValueError, TypeError):
+                    raise ValueError("Le prix doit être un nombre valide")
+                
+                sale_price = None
+                if sale_price_str and sale_price_str.strip():
+                    try:
+                        sale_price = Decimal(sale_price_str)
+                    except (ValueError, TypeError):
+                        raise ValueError("Le prix de promotion doit être un nombre valide")
+                
+                try:
+                    stock_quantity = int(stock_quantity_str)
+                    if stock_quantity < 0:
+                        raise ValueError("La quantité en stock ne peut pas être négative")
+                except (ValueError, TypeError):
+                    raise ValueError("La quantité en stock doit être un nombre entier valide")
+                
+                # Mise à jour du produit
+                product.name = name
+                product.description = description
+                product.price = price
+                product.sale_price = sale_price
+                product.stock_quantity = stock_quantity
+                product.is_active = request.POST.get('is_active') == 'on'
+                product.is_featured = request.POST.get('is_featured') == 'on'
+                
+                if 'image' in request.FILES:
+                    product.image = request.FILES['image']
+                
+                product.save()
+                messages.success(request, 'Produit mis à jour avec succès!')
+                return redirect('dashboard:products')
+                
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la mise à jour: {str(e)}')
     
     categories = Category.objects.all()
     teams = Team.objects.all()
@@ -412,15 +454,58 @@ def dashboard_product_create(request):
     if request.method == 'POST':
         try:
             with transaction.atomic():
+                from decimal import Decimal
+                
+                # Récupérer et convertir les données
+                name = request.POST.get('name')
+                description = request.POST.get('description')
+                price_str = request.POST.get('price')
+                sale_price_str = request.POST.get('sale_price')
+                stock_quantity_str = request.POST.get('stock_quantity')
+                category_id = request.POST.get('category')
+                team_id = request.POST.get('team')
+                
+                # Validation et conversion des types
+                if not name:
+                    raise ValueError("Le nom du produit est requis")
+                if not price_str:
+                    raise ValueError("Le prix est requis")
+                if not stock_quantity_str:
+                    raise ValueError("La quantité en stock est requise")
+                if not category_id:
+                    raise ValueError("La catégorie est requise")
+                if not team_id:
+                    raise ValueError("L'équipe est requise")
+                
+                # Conversion des types
+                try:
+                    price = Decimal(price_str)
+                except (ValueError, TypeError):
+                    raise ValueError("Le prix doit être un nombre valide")
+                
+                sale_price = None
+                if sale_price_str and sale_price_str.strip():
+                    try:
+                        sale_price = Decimal(sale_price_str)
+                    except (ValueError, TypeError):
+                        raise ValueError("Le prix de promotion doit être un nombre valide")
+                
+                try:
+                    stock_quantity = int(stock_quantity_str)
+                    if stock_quantity < 0:
+                        raise ValueError("La quantité en stock ne peut pas être négative")
+                except (ValueError, TypeError):
+                    raise ValueError("La quantité en stock doit être un nombre entier valide")
+                
                 # Créer le produit
                 product = Product.objects.create(
-                    name=request.POST.get('name'),
-                    description=request.POST.get('description'),
-                    price=request.POST.get('price'),
-                    sale_price=request.POST.get('sale_price') or None,
-                    stock_quantity=request.POST.get('stock_quantity'),
-                    category_id=request.POST.get('category'),
-                    team_id=request.POST.get('team'),
+                    name=name,
+                    description=description,
+                    price=price,
+                    sale_price=sale_price,
+                    stock_quantity=stock_quantity,
+                    category_id=int(category_id),
+                    team_id=int(team_id),
                     is_active=request.POST.get('is_active') == 'on',
                     is_featured=request.POST.get('is_featured') == 'on',
                 )
