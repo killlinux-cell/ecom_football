@@ -25,7 +25,8 @@ class EmailService:
         """Récupère les paramètres email"""
         try:
             return EmailSettings.objects.first()
-        except EmailSettings.DoesNotExist:
+        except (EmailSettings.DoesNotExist, Exception):
+            # Gérer le cas où la table n'existe pas encore (migrations non appliquées)
             return None
     
     def _get_template(self, template_type):
@@ -35,24 +36,28 @@ class EmailService:
                 template_type=template_type,
                 is_active=True
             )
-        except EmailTemplate.DoesNotExist:
+        except (EmailTemplate.DoesNotExist, Exception):
             logger.error(f"Template {template_type} non trouvé")
             return None
     
     def _create_email_log(self, template, recipient_email, recipient_name, subject, 
                          email_data, order=None, payment=None, user=None):
         """Crée un log d'email"""
-        return EmailLog.objects.create(
-            template=template,
-            recipient_email=recipient_email,
-            recipient_name=recipient_name,
-            subject=subject,
-            email_data=email_data,
-            order=order,
-            payment=payment,
-            user=user,
-            status='pending'
-        )
+        try:
+            return EmailLog.objects.create(
+                template=template,
+                recipient_email=recipient_email,
+                recipient_name=recipient_name,
+                subject=subject,
+                email_data=email_data,
+                order=order,
+                payment=payment,
+                user=user,
+                status='pending'
+            )
+        except Exception as e:
+            logger.error(f"Erreur création log email: {str(e)}")
+            return None
     
     def _send_email(self, email_log, html_content, text_content=None):
         """Envoie l'email et met à jour le log"""
@@ -319,5 +324,15 @@ class EmailService:
             return template_content
 
 
-# Instance globale du service
-email_service = EmailService()
+# Instance globale du service (initialisation paresseuse)
+_email_service_instance = None
+
+def get_email_service():
+    """Retourne l'instance du service email (initialisation paresseuse)"""
+    global _email_service_instance
+    if _email_service_instance is None:
+        _email_service_instance = EmailService()
+    return _email_service_instance
+
+# Alias pour la compatibilité
+email_service = get_email_service()

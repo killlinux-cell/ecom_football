@@ -6,7 +6,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from datetime import timedelta
-from .email_service import email_service
+from .email_service import get_email_service
 from orders.models import Order
 from payments.models import Payment
 from products.models import Product
@@ -21,7 +21,7 @@ def send_order_confirmation_email(sender, instance, created, **kwargs):
         # Attendre un peu pour s'assurer que tous les OrderItems sont créés
         from django.db import transaction
         transaction.on_commit(
-            lambda: email_service.send_order_confirmation(instance)
+            lambda: get_email_service().send_order_confirmation(instance)
         )
 
 
@@ -40,7 +40,7 @@ def send_payment_confirmation_email(sender, instance, created, **kwargs):
             ).exists()
             
             if not existing_log:
-                email_service.send_payment_confirmation(instance)
+                get_email_service().send_payment_confirmation(instance)
 
 
 @receiver(pre_save, sender=Order)
@@ -52,7 +52,7 @@ def send_shipping_notification_email(sender, instance, **kwargs):
             # Vérifier si le statut a changé vers 'shipped'
             if (old_instance.status != 'shipped' and 
                 instance.status == 'shipped'):
-                email_service.send_shipping_notification(instance)
+                get_email_service().send_shipping_notification(instance)
         except Order.DoesNotExist:
             pass
 
@@ -66,7 +66,7 @@ def send_delivery_notification_email(sender, instance, **kwargs):
             # Vérifier si le statut a changé vers 'delivered'
             if (old_instance.status != 'delivered' and 
                 instance.status == 'delivered'):
-                email_service.send_delivery_notification(instance)
+                get_email_service().send_delivery_notification(instance)
         except Order.DoesNotExist:
             pass
 
@@ -79,7 +79,7 @@ def send_stock_alert_email(sender, instance, **kwargs):
             old_instance = Product.objects.get(pk=instance.pk)
             # Vérifier si le stock a baissé en dessous du seuil
             if (old_instance.stock > 5 and instance.stock <= 5):
-                email_service.send_stock_alert(instance, instance.stock)
+                get_email_service().send_stock_alert(instance, instance.stock)
         except Product.DoesNotExist:
             pass
 
@@ -95,15 +95,15 @@ def send_cart_reminder_emails():
     
     # Récupérer les utilisateurs uniques avec des paniers
     users_with_carts = User.objects.filter(
-        cart_items__created_at__lt=cutoff_time,
-        cart_items__isnull=False
+        cart__items__added_at__lt=cutoff_time,
+        cart__items__isnull=False
     ).distinct()
     
     for user in users_with_carts:
         # Récupérer les articles du panier
         cart_items = CartItem.objects.filter(
             cart__user=user,
-            created_at__lt=cutoff_time
+            added_at__lt=cutoff_time
         )
         
         if cart_items.exists():
@@ -116,7 +116,7 @@ def send_cart_reminder_emails():
             ).exists()
             
             if not existing_reminder:
-                email_service.send_cart_reminder(user, cart_items)
+                get_email_service().send_cart_reminder(user, cart_items)
 
 
 # Commande de gestion pour les rappels de panier

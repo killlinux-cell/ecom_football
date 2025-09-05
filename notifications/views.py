@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
 from .models import EmailTemplate, EmailLog, EmailSettings
-from .email_service import email_service
+from .email_service import get_email_service
 from orders.models import Order
 from payments.models import Payment
 
@@ -237,7 +237,7 @@ def send_test_email(request):
             )
             
             # Envoi
-            success = email_service._send_email(email_log, html_content, text_content)
+            success = get_email_service()._send_email(email_log, html_content, text_content)
             
             if success:
                 messages.success(request, f"Email de test envoyé à {recipient_email}!")
@@ -278,7 +278,7 @@ def resend_email(request, log_id):
         )
         
         # Envoi
-        success = email_service._send_email(new_log, html_content, text_content)
+        success = get_email_service()._send_email(new_log, html_content, text_content)
         
         if success:
             messages.success(request, "Email renvoyé avec succès!")

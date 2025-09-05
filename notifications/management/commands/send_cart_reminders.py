@@ -5,7 +5,7 @@ Commande Django pour envoyer les rappels de panier abandonné
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
-from notifications.email_service import email_service
+from notifications.email_service import get_email_service
 from django.contrib.auth.models import User
 from cart.models import CartItem
 from notifications.models import EmailLog
@@ -38,7 +38,8 @@ class Command(BaseCommand):
         
         # Récupérer les utilisateurs uniques avec des paniers
         users_with_carts = User.objects.filter(
-            cart__items__created_at__lt=cutoff_time
+            cart__items__added_at__lt=cutoff_time,
+            cart__items__isnull=False
         ).distinct()
         
         if not users_with_carts.exists():
@@ -58,7 +59,7 @@ class Command(BaseCommand):
             # Récupérer les articles du panier
             cart_items = CartItem.objects.filter(
                 cart__user=user,
-                created_at__lt=cutoff_time
+                added_at__lt=cutoff_time
             )
             
             if not cart_items.exists():
@@ -82,7 +83,7 @@ class Command(BaseCommand):
             
             # Envoyer le rappel
             try:
-                success = email_service.send_cart_reminder(user, cart_items)
+                success = get_email_service().send_cart_reminder(user, cart_items)
                 if success:
                     self.stdout.write(
                         self.style.SUCCESS(f"✅ Rappel envoyé à {user.email}")
