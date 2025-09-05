@@ -61,6 +61,10 @@ class EmailService:
     
     def _send_email(self, email_log, html_content, text_content=None):
         """Envoie l'email et met à jour le log"""
+        if not email_log:
+            logger.error("EmailLog est None, impossible d'envoyer l'email")
+            return False
+            
         if not self.settings or not self.settings.is_active:
             logger.warning("Système d'email désactivé")
             email_log.status = 'failed'
