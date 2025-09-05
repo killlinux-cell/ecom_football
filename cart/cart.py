@@ -126,8 +126,30 @@ class Cart:
         return total
 
     def clear(self):
-        """Supprimer le panier de la session"""
-        del self.session[settings.CART_SESSION_ID]
+        """Supprimer le panier de la session et de la base de données"""
+        # Vider la session
+        if settings.CART_SESSION_ID in self.session:
+            del self.session[settings.CART_SESSION_ID]
+        
+        # Vider la base de données
+        from .models import Cart, CartItem
+        from django.contrib.auth.models import AnonymousUser
+        
+        if hasattr(self, '_request') and not isinstance(self._request.user, AnonymousUser):
+            # Utilisateur connecté
+            try:
+                cart = Cart.objects.get(user=self._request.user)
+                cart.items.all().delete()
+            except Cart.DoesNotExist:
+                pass
+        else:
+            # Utilisateur anonyme
+            try:
+                cart = Cart.objects.get(session_key=self._request.session.session_key)
+                cart.items.all().delete()
+            except Cart.DoesNotExist:
+                pass
+        
         self.save()
 
     def get_item(self, product, size):

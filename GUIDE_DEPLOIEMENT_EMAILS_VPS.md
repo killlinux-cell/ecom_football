@@ -29,7 +29,7 @@ python manage.py migrate
 
 ### **3. Initialiser les Templates d'Emails**
 
-```bash
+```bashir
 python manage.py init_email_templates
 ```
 
