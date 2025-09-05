@@ -1,0 +1,242 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Notifications Email{% endblock %}
+
+{% block extra_css %}
+<style>
+    .email-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .stat-label {
+        color: #666;
+        font-size: 0.9em;
+    }
+    .stat-sent { color: #28a745; }
+    .stat-failed { color: #dc3545; }
+    .stat-pending { color: #ffc107; }
+    .stat-total { color: #007bff; }
+    
+    .recent-emails {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .email-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .email-item:last-child {
+        border-bottom: none;
+    }
+    .email-info {
+        flex: 1;
+    }
+    .email-recipient {
+        font-weight: bold;
+        color: #333;
+    }
+    .email-subject {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .email-status {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    .status-sent { background: #d4edda; color: #155724; }
+    .status-failed { background: #f8d7da; color: #721c24; }
+    .status-pending { background: #fff3cd; color: #856404; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">📧 Notifications Email</h1>
+                <div>
+                    <a href="{% url 'notifications:email_settings' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-cog"></i> Paramètres
+                    </a>
+                    <a href="{% url 'notifications:email_templates' %}" class="btn btn-primary">
+                        <i class="fas fa-envelope"></i> Templates
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Statistiques -->
+            <div class="email-stats">
+                <div class="stat-card">
+                    <div class="stat-number stat-total">{{ total_emails }}</div>
+                    <div class="stat-label">Total Emails</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number stat-sent">{{ sent_emails }}</div>
+                    <div class="stat-label">Envoyés</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number stat-failed">{{ failed_emails }}</div>
+                    <div class="stat-label">Échoués</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number stat-pending">{{ pending_emails }}</div>
+                    <div class="stat-label">En Attente</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number stat-total">{{ recent_emails }}</div>
+                    <div class="stat-label">Cette Semaine</div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Emails par type -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">📊 Emails par Type</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for email_type in emails_by_type %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>{{ email_type.template__template_type|title }}</span>
+                                <span class="badge bg-primary">{{ email_type.count }}</span>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted">Aucun email envoyé</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Derniers emails -->
+                <div class="col-md-6">
+                    <div class="recent-emails">
+                        <h5 class="mb-3">📬 Derniers Emails</h5>
+                        {% for log in recent_email_logs %}
+                        <div class="email-item">
+                            <div class="email-info">
+                                <div class="email-recipient">{{ log.recipient_email }}</div>
+                                <div class="email-subject">{{ log.subject }}</div>
+                                <small class="text-muted">{{ log.created_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <div class="email-status status-{{ log.status }}">
+                                {{ log.get_status_display }}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">Aucun email récent</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions rapides -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">⚡ Actions Rapides</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <a href="{% url 'notifications:email_templates' %}" class="btn btn-outline-primary w-100 mb-2">
+                                        <i class="fas fa-edit"></i><br>
+                                        <small>Gérer Templates</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'notifications:email_logs' %}" class="btn btn-outline-info w-100 mb-2">
+                                        <i class="fas fa-list"></i><br>
+                                        <small>Voir Logs</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'notifications:email_settings' %}" class="btn btn-outline-warning w-100 mb-2">
+                                        <i class="fas fa-cog"></i><br>
+                                        <small>Configuration</small>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-outline-success w-100 mb-2" onclick="sendTestEmail()">
+                                        <i class="fas fa-paper-plane"></i><br>
+                                        <small>Email Test</small>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Email Test -->
+<div class="modal fade" id="testEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📧 Envoyer Email de Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'notifications:send_test_email' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email destinataire</label>
+                        <input type="email" class="form-control" name="recipient_email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type de template</label>
+                        <select class="form-select" name="template_type" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="order_confirmation">Confirmation de commande</option>
+                            <option value="payment_confirmation">Confirmation de paiement</option>
+                            <option value="order_shipped">Commande expédiée</option>
+                            <option value="cart_reminder">Rappel de panier</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Envoyer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function sendTestEmail() {
+    const modal = new bootstrap.Modal(document.getElementById('testEmailModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

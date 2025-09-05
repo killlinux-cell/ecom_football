@@ -33,6 +33,22 @@ def process_payment(request, order_id):
         }
     )
     
+    # CORRECTION: S'assurer que le montant est toujours à jour
+    if not created and payment.amount != order.total:
+        payment.amount = order.total
+        payment.save()
+        
+        PaymentLog.objects.create(
+            payment=payment,
+            event='amount_updated',
+            message=f'Montant du paiement mis à jour: {payment.amount} FCFA',
+            data={
+                'old_amount': payment.amount,
+                'new_amount': order.total,
+                'order_total': order.total
+            }
+        )
+    
     # Configuration PayDunya
     paydunya_config = {
         'master_key': settings.PAYDUNYA_MASTER_KEY,
@@ -270,6 +286,22 @@ def wave_direct_payment(request, order_id):
             'wave_phone_number': settings.WAVE_PHONE_NUMBER,
         }
     )
+    
+    # CORRECTION: S'assurer que le montant est toujours à jour
+    if not created and payment.amount != order.total:
+        payment.amount = order.total
+        payment.save()
+        
+        PaymentLog.objects.create(
+            payment=payment,
+            event='amount_updated_wave',
+            message=f'Montant du paiement Wave mis à jour: {payment.amount} FCFA',
+            data={
+                'old_amount': payment.amount,
+                'new_amount': order.total,
+                'order_total': order.total
+            }
+        )
     
     # Générer un code de paiement unique
     import uuid

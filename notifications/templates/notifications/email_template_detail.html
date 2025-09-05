@@ -1,0 +1,234 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Modifier Template - {{ template.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .template-editor {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-save {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+    .btn-preview {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-preview:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+    .help-text {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    .variables-help {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .variable {
+        background-color: #e3f2fd;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.9em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">✏️ Modifier Template</h1>
+                <div>
+                    <a href="{% url 'notifications:email_templates' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="variables-help">
+                <h5><i class="fas fa-info-circle"></i> Variables disponibles</h5>
+                <p class="mb-2">Vous pouvez utiliser ces variables dans vos templates :</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Variables générales :</strong><br>
+                        <span class="variable">{{ customer_name }}</span> - Nom du client<br>
+                        <span class="variable">{{ order.order_number }}</span> - Numéro de commande<br>
+                        <span class="variable">{{ order.total }}</span> - Total de la commande<br>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Variables spécifiques :</strong><br>
+                        <span class="variable">{{ payment_amount }}</span> - Montant payé<br>
+                        <span class="variable">{{ payment_method }}</span> - Méthode de paiement<br>
+                        <span class="variable">{{ order_items }}</span> - Articles de la commande<br>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="template-editor">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Nom du template</label>
+                                <input type="text" class="form-control" name="name" 
+                                       value="{{ template.name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Type de template</label>
+                                <input type="text" class="form-control" value="{{ template.get_template_type_display }}" 
+                                       readonly>
+                                <div class="help-text">Le type ne peut pas être modifié</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Sujet de l'email</label>
+                        <input type="text" class="form-control" name="subject" 
+                               value="{{ template.subject }}" required>
+                        <div class="help-text">Utilisez {{ order.order_number }} pour le numéro de commande</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Contenu HTML</label>
+                        <textarea class="form-control" name="html_content" rows="15" required>{{ template.html_content }}</textarea>
+                        <div class="help-text">Contenu HTML de l'email avec les variables</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Contenu texte (optionnel)</label>
+                        <textarea class="form-control" name="text_content" rows="8">{{ template.text_content }}</textarea>
+                        <div class="help-text">Version texte de l'email pour les clients qui ne supportent pas HTML</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" 
+                                   {% if template.is_active %}checked{% endif %}>
+                            <label class="form-check-label">
+                                Template actif
+                            </label>
+                        </div>
+                        <div class="help-text">Désactivez pour arrêter l'utilisation de ce template</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="submit" class="btn btn-save">
+                                <i class="fas fa-save"></i> Sauvegarder
+                            </button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-preview" onclick="previewTemplate()">
+                                <i class="fas fa-eye"></i> Prévisualiser
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de prévisualisation -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">👁️ Prévisualisation du Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="preview-content">
+                    <!-- Le contenu sera chargé ici -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewTemplate() {
+    const htmlContent = document.querySelector('textarea[name="html_content"]').value;
+    const previewContent = document.getElementById('preview-content');
+    
+    // Remplacer les variables par des exemples
+    let previewHtml = htmlContent
+        .replace(/\{\{ customer_name \}\}/g, 'Jean Dupont')
+        .replace(/\{\{ order\.order_number \}\}/g, 'CMD202412051234567')
+        .replace(/\{\{ order\.total \}\}/g, '25 000')
+        .replace(/\{\{ payment_amount \}\}/g, '25 000')
+        .replace(/\{\{ payment_method \}\}/g, 'Wave')
+        .replace(/\{\{ order_items \}\}/g, 'Maillot Barcelone Extérieur 2025-26');
+    
+    previewContent.innerHTML = previewHtml;
+    
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

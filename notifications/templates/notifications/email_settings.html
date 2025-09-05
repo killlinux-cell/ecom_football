@@ -1,0 +1,378 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Configuration Email{% endblock %}
+
+{% block extra_css %}
+<style>
+    .config-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .config-header {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+    .config-header h4 {
+        color: #1e3c72;
+        margin: 0;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    .btn-save {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+    .btn-test {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-test:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    .status-active {
+        background-color: #28a745;
+    }
+    .status-inactive {
+        background-color: #dc3545;
+    }
+    .help-text {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    .alert-info {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">⚙️ Configuration Email</h1>
+                <div>
+                    <a href="{% url 'notifications:dashboard_emails' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="alert-info">
+                <h5><i class="fas fa-info-circle"></i> Configuration SMTP</h5>
+                <p class="mb-0">Configurez ici les paramètres de votre serveur SMTP pour envoyer des emails automatiquement à vos clients.</p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Configuration SMTP -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h4><i class="fas fa-server"></i> Configuration SMTP</h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Serveur SMTP</label>
+                                <input type="text" class="form-control" name="smtp_host" 
+                                       value="{{ settings.smtp_host }}" required>
+                                <div class="help-text">Ex: smtp.gmail.com, smtp-mail.outlook.com</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Port SMTP</label>
+                                <input type="number" class="form-control" name="smtp_port" 
+                                       value="{{ settings.smtp_port }}" required>
+                                <div class="help-text">Généralement 587 (TLS) ou 465 (SSL)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Email SMTP</label>
+                                <input type="email" class="form-control" name="smtp_username" 
+                                       value="{{ settings.smtp_username }}" required>
+                                <div class="help-text">Votre adresse email pour l'authentification</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Mot de passe SMTP</label>
+                                <input type="password" class="form-control" name="smtp_password" 
+                                       value="{{ settings.smtp_password }}" required>
+                                <div class="help-text">Mot de passe ou mot de passe d'application</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="use_tls" 
+                                   {% if settings.use_tls %}checked{% endif %}>
+                            <label class="form-check-label">
+                                Utiliser TLS (recommandé)
+                            </label>
+                        </div>
+                        <div class="help-text">Activez cette option pour une connexion sécurisée</div>
+                    </div>
+                </div>
+                
+                <!-- Configuration expéditeur -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h4><i class="fas fa-envelope"></i> Configuration Expéditeur</h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Email expéditeur</label>
+                                <input type="email" class="form-control" name="from_email" 
+                                       value="{{ settings.from_email }}" required>
+                                <div class="help-text">Email qui apparaîtra comme expéditeur</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Nom expéditeur</label>
+                                <input type="text" class="form-control" name="from_name" 
+                                       value="{{ settings.from_name }}" required>
+                                <div class="help-text">Nom qui apparaîtra comme expéditeur</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Paramètres généraux -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h4><i class="fas fa-cog"></i> Paramètres Généraux</h4>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" 
+                                   {% if settings.is_active %}checked{% endif %}>
+                            <label class="form-check-label">
+                                <span class="status-indicator {% if settings.is_active %}status-active{% else %}status-inactive{% endif %}"></span>
+                                Système d'email actif
+                            </label>
+                        </div>
+                        <div class="help-text">Désactivez pour arrêter l'envoi d'emails</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Max emails par heure</label>
+                                <input type="number" class="form-control" name="max_emails_per_hour" 
+                                       value="{{ settings.max_emails_per_hour }}" min="1" max="1000">
+                                <div class="help-text">Limite pour éviter le spam</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Délai rappel panier (heures)</label>
+                                <input type="number" class="form-control" name="cart_reminder_delay_hours" 
+                                       value="{{ settings.cart_reminder_delay_hours }}" min="1" max="168">
+                                <div class="help-text">Délai avant d'envoyer un rappel de panier</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Types d'emails -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h4><i class="fas fa-list-check"></i> Types d'Emails</h4>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="send_order_confirmations" 
+                                           {% if settings.send_order_confirmations %}checked{% endif %}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-shopping-cart text-primary"></i>
+                                        Confirmations de commande
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="send_payment_confirmations" 
+                                           {% if settings.send_payment_confirmations %}checked{% endif %}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-credit-card text-success"></i>
+                                        Confirmations de paiement
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="send_shipping_notifications" 
+                                           {% if settings.send_shipping_notifications %}checked{% endif %}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-truck text-info"></i>
+                                        Notifications d'expédition
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="send_cart_reminders" 
+                                           {% if settings.send_cart_reminders %}checked{% endif %}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-bell text-warning"></i>
+                                        Rappels de panier
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="send_stock_alerts" 
+                                           {% if settings.send_stock_alerts %}checked{% endif %}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                                        Alertes de stock
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Boutons d'action -->
+                <div class="config-section">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="submit" class="btn btn-save">
+                                <i class="fas fa-save"></i> Sauvegarder la Configuration
+                            </button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-test" onclick="sendTestEmail()">
+                                <i class="fas fa-paper-plane"></i> Envoyer Email Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Email Test -->
+<div class="modal fade" id="testEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📧 Envoyer Email de Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'notifications:send_test_email' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email destinataire</label>
+                        <input type="email" class="form-control" name="recipient_email" 
+                               placeholder="votre-email@example.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type de template</label>
+                        <select class="form-select" name="template_type" required>
+                            <option value="">Sélectionner...</option>
+                            <option value="order_confirmation">Confirmation de commande</option>
+                            <option value="payment_confirmation">Confirmation de paiement</option>
+                            <option value="order_shipped">Commande expédiée</option>
+                            <option value="cart_reminder">Rappel de panier</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Envoyer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function sendTestEmail() {
+    const modal = new bootstrap.Modal(document.getElementById('testEmailModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

@@ -36,6 +36,7 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('accounts/', include('accounts.urls')),
     path('accounts/', include('allauth.urls')),
+    path('dashboard/emails/', include('notifications.urls')),
 ]
 
 # Ajouter les URLs pour les fichiers media en développement

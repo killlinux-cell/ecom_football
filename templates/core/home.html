@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Accueil - Maillots Football{% endblock %}
+
+{% block content %}
+<!-- Hero Section avec PWA -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-futbol me-3"></i>
+                    Maillots Football
+                </h1>
+                <p class="lead mb-4">
+                    Découvrez les plus beaux maillots de football des plus grandes équipes. 
+                    Qualité premium, livraison rapide et prix imbattables.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'products:product_list' %}" class="btn btn-light btn-lg btn-mobile">
+                        <i class="fas fa-shopping-bag me-2"></i>
+                        Voir les produits
+                    </a>
+                    <button class="btn btn-outline-light btn-lg btn-mobile" onclick="pwaManager.installApp()">
+                        <i class="fas fa-download me-2"></i>
+                        Installer l'app
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-image">
+                    <i class="fas fa-futbol fa-10x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Raccourcis PWA -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="h3 mb-3">
+                <i class="fas fa-rocket me-2 text-primary"></i>
+                Accès rapide
+            </h2>
+            <p class="text-muted">Installez l'app pour un accès encore plus rapide</p>
+        </div>
+        
+        <div class="pwa-shortcuts-grid">
+            {% for shortcut in pwa_shortcuts %}
+            <a href="{{ shortcut.url }}" class="pwa-shortcut touch-feedback">
+                <div class="pwa-shortcut-icon" style="color: {{ shortcut.color }}">
+                    <i class="{{ shortcut.icon }}"></i>
+                </div>
+                <div class="pwa-shortcut-text">{{ shortcut.name }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Fonctionnalités PWA -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="h3 mb-3">
+                <i class="fas fa-mobile-alt me-2 text-primary"></i>
+                Application Mobile
+            </h2>
+            <p class="text-muted">Profitez de toutes les fonctionnalités sur votre mobile</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card card-mobile h-100 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-download fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Installation facile</h5>
+                        <p class="card-text">
+                            Installez l'app directement depuis votre navigateur. 
+                            Aucun store requis !
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card card-mobile h-100 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-wifi-slash fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">Mode hors ligne</h5>
+                        <p class="card-text">
+                            Consultez vos commandes et votre panier même sans connexion internet.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card card-mobile h-100 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-bell fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">Notifications</h5>
+                        <p class="card-text">
+                            Recevez des notifications pour vos commandes et les nouvelles promotions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Instructions d'installation -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="h3 mb-4">
+                    <i class="fas fa-mobile-alt me-2"></i>
+                    Comment installer l'app ?
+                </h2>
+                <div class="installation-steps">
+                    <div class="step mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="step-number bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-weight: bold;">1</span>
+                            <span>Ouvrez le site dans votre navigateur mobile</span>
+                        </div>
+                    </div>
+                    <div class="step mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="step-number bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-weight: bold;">2</span>
+                            <span>Cliquez sur "Installer" dans la bannière</span>
+                        </div>
+                    </div>
+                    <div class="step mb-3">
+                        <div class="d-flex align-items-center">
+                            <span class="step-number bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 30px; height: 30px; font-weight: bold;">3</span>
+                            <span>L'app apparaîtra sur votre écran d'accueil</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="phone-mockup">
+                    <i class="fas fa-mobile-alt fa-8x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistiques PWA -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h4 class="h2 fw-bold">1000+</h4>
+                    <p class="text-muted">Utilisateurs satisfaits</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <i class="fas fa-shipping-fast fa-3x text-success mb-3"></i>
+                    <h4 class="h2 fw-bold">24h</h4>
+                    <p class="text-muted">Livraison rapide</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                    <h4 class="h2 fw-bold">4.9/5</h4>
+                    <p class="text-muted">Note moyenne</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
+                    <h4 class="h2 fw-bold">100%</h4>
+                    <p class="text-muted">Sécurisé</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>');
+        animation: float 20s infinite linear;
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        100% { transform: translateY(-100px); }
+    }
+    
+    .hero-image {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stat-item {
+        padding: 2rem 1rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        transform: translateY(-10px);
+    }
+    
+    .installation-steps .step {
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+    }
+    
+    .installation-steps .step:nth-child(1) { animation-delay: 0.1s; }
+    .installation-steps .step:nth-child(2) { animation-delay: 0.2s; }
+    .installation-steps .step:nth-child(3) { animation-delay: 0.3s; }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .phone-mockup {
+        position: relative;
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation des statistiques
+    const stats = document.querySelectorAll('.stat-item h4');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateNumber(entry.target);
+            }
+        });
+    });
+    
+    stats.forEach(stat => observer.observe(stat));
+    
+    function animateNumber(element) {
+        const target = parseInt(element.textContent.replace(/\D/g, ''));
+        const duration = 2000;
+        const start = performance.now();
+        
+        function updateNumber(currentTime) {
+            const elapsed = currentTime - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const current = Math.floor(progress * target);
+            
+            if (element.textContent.includes('+')) {
+                element.textContent = current.toLocaleString() + '+';
+            } else if (element.textContent.includes('/')) {
+                element.textContent = (current / 10).toFixed(1) + '/5';
+            } else if (element.textContent.includes('%')) {
+                element.textContent = current + '%';
+            } else {
+                element.textContent = current + 'h';
+            }
+            
+            if (progress < 1) {
+                requestAnimationFrame(updateNumber);
+            }
+        }
+        
+        requestAnimationFrame(updateNumber);
+    }
+    
+    // Détection de l'installation PWA
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        // L'app est installée, masquer le bouton d'installation
+        const installBtn = document.querySelector('button[onclick="pwaManager.installApp()"]');
+        if (installBtn) {
+            installBtn.style.display = 'none';
+        }
+    }
+});
+</script>
+{% endblock %}

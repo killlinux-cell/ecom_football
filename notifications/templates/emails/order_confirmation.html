@@ -1,0 +1,71 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>🎉 Merci pour votre commande !</h2>
+
+<p>Bonjour <strong>{{ customer_name }}</strong>,</p>
+
+<p>Nous avons bien reçu votre commande <strong>#{{ order.order_number }}</strong> et nous vous en remercions !</p>
+
+<div class="order-details">
+    <h3>📋 Détails de votre commande</h3>
+    
+    {% for item in order_items %}
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">{{ item.product_name }}</div>
+            <div class="product-details">
+                Taille: {{ item.size }} | Quantité: {{ item.quantity }}
+            </div>
+        </div>
+        <div class="price">{{ item.total_price|floatformat:0 }} FCFA</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="total-section">
+    <div class="total-row">
+        <span>Sous-total:</span>
+        <span>{{ order.subtotal|floatformat:0 }} FCFA</span>
+    </div>
+    <div class="total-row">
+        <span>Frais de livraison:</span>
+        <span>{{ order.shipping_cost|floatformat:0 }} FCFA</span>
+    </div>
+    <div class="total-row final">
+        <span>Total:</span>
+        <span>{{ order.total|floatformat:0 }} FCFA</span>
+    </div>
+</div>
+
+{% if shipping_address %}
+<div class="order-details">
+    <h3>📍 Adresse de livraison</h3>
+    <p>
+        <strong>{{ shipping_address.first_name }} {{ shipping_address.last_name }}</strong><br>
+        {{ shipping_address.address }}<br>
+        {{ shipping_address.city }}, {{ shipping_address.postal_code }}<br>
+        {{ shipping_address.country }}<br>
+        📞 {{ shipping_address.phone }}
+    </p>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ order.get_absolute_url }}" class="button">Voir ma commande</a>
+</div>
+
+<h3>💳 Prochaines étapes</h3>
+<ol>
+    <li><strong>Paiement</strong> : Vous recevrez un email de confirmation une fois le paiement validé</li>
+    <li><strong>Préparation</strong> : Nous préparerons votre commande avec soin</li>
+    <li><strong>Expédition</strong> : Vous serez notifié dès l'expédition</li>
+    <li><strong>Livraison</strong> : Suivez votre colis jusqu'à la livraison</li>
+</ol>
+
+<p>Si vous avez des questions concernant votre commande, n'hésitez pas à nous contacter.</p>
+
+<p>Merci encore pour votre confiance !</p>
+
+<p><strong>L'équipe Maillots Football</strong></p>
+{% endblock %}

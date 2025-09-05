@@ -9,6 +9,19 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
     <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
     
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Maillots Football">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Maillots Football">
+    <meta name="description" content="Votre boutique de confiance pour les maillots de football. Découvrez les dernières collections des plus grandes équipes.">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-config" content="/static/browserconfig.xml">
+    <meta name="msapplication-TileColor" content="#1e3c72">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="theme-color" content="#1e3c72">
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -20,6 +33,29 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-fixes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pwa-mobile.css' %}">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-152x152.png' %}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{% static 'icons/icon-152x152.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="apple-touch-icon" sizes="167x167" href="{% static 'icons/icon-192x192.png' %}">
+    
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/icon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'icons/icon-16x16.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/icon-192x192.png' %}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'icons/icon-512x512.png' %}">
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="{% static 'icons/icon-144x144.png' %}">
+    <meta name="msapplication-square70x70logo" content="{% static 'icons/icon-72x72.png' %}">
+    <meta name="msapplication-square150x150logo" content="{% static 'icons/icon-144x144.png' %}">
+    <meta name="msapplication-wide310x150logo" content="{% static 'icons/icon-192x192.png' %}">
+    <meta name="msapplication-square310x310logo" content="{% static 'icons/icon-512x512.png' %}">
     
     <style>
         :root {
@@ -258,6 +294,9 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- PWA JavaScript -->
+    <script src="{% static 'js/pwa.js' %}"></script>
     
     <!-- Custom JS -->
     <script>

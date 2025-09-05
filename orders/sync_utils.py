@@ -21,6 +21,33 @@ def sync_order_payment_status(order, new_payment_status, updated_by=None):
         payment = Payment.objects.get(order=order)
         old_payment_status = payment.status
         
+        # CORRECTION: Vérifier que le montant du paiement correspond au total de la commande
+        if payment.amount != order.total:
+            PaymentLog.objects.create(
+                payment=payment,
+                event='amount_mismatch_detected',
+                message=f'Incohérence de montant détectée: Paiement={payment.amount}, Commande={order.total}',
+                data={
+                    'payment_amount': float(payment.amount),
+                    'order_total': float(order.total),
+                    'difference': float(order.total - payment.amount)
+                }
+            )
+            
+            # Corriger le montant du paiement
+            payment.amount = order.total
+            payment.save()
+            
+            PaymentLog.objects.create(
+                payment=payment,
+                event='amount_corrected',
+                message=f'Montant du paiement corrigé: {payment.amount} FCFA',
+                data={
+                    'corrected_amount': float(payment.amount),
+                    'order_total': float(order.total)
+                }
+            )
+        
         # Mapping des statuts Order -> Payment
         status_mapping = {
             'pending': 'pending',
@@ -223,5 +250,52 @@ def get_status_consistency_report():
                 'expected_payment_status': expected_payment_status,
                 'inconsistency_type': 'status_mismatch'
             })
+        
+        # NOUVEAU: Vérifier la cohérence des montants
+        if payment.amount != order.total:
+            inconsistencies.append({
+                'order_id': order.id,
+                'order_number': order.order_number,
+                'order_total': float(order.total),
+                'payment_amount': float(payment.amount),
+                'difference': float(order.total - payment.amount),
+                'inconsistency_type': 'amount_mismatch'
+            })
     
     return inconsistencies
+
+
+def fix_amount_inconsistencies():
+    """
+    Corrige automatiquement les incohérences de montants entre Order et Payment
+    """
+    fixed_count = 0
+    
+    # Récupérer toutes les commandes avec paiements
+    orders_with_payments = Order.objects.filter(payment__isnull=False).select_related('payment')
+    
+    for order in orders_with_payments:
+        payment = order.payment
+        
+        # Vérifier et corriger les incohérences de montant
+        if payment.amount != order.total:
+            old_amount = payment.amount
+            payment.amount = order.total
+            payment.save()
+            
+            # Log de la correction
+            PaymentLog.objects.create(
+                payment=payment,
+                event='amount_auto_corrected',
+                message=f'Montant automatiquement corrigé: {old_amount} -> {order.total} FCFA',
+                data={
+                    'old_amount': float(old_amount),
+                    'new_amount': float(order.total),
+                    'order_total': float(order.total),
+                    'difference': float(order.total - old_amount)
+                }
+            )
+            
+            fixed_count += 1
+    
+    return fixed_count

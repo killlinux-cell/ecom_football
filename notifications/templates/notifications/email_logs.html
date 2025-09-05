@@ -1,0 +1,164 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Logs Email{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">📋 Logs Email</h1>
+                <div>
+                    <a href="{% url 'notifications:dashboard_emails' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="search" 
+                                   placeholder="Rechercher..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="status">
+                                <option value="">Tous les statuts</option>
+                                {% for status_code, status_name in status_choices %}
+                                    <option value="{{ status_code }}" {% if status == status_code %}selected{% endif %}>
+                                        {{ status_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" name="template_type">
+                                <option value="">Tous les types</option>
+                                {% for type_code, type_name in template_types %}
+                                    <option value="{{ type_code }}" {% if template_type == type_code %}selected{% endif %}>
+                                        {{ type_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Filtrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Liste des logs -->
+            <div class="card">
+                <div class="card-body">
+                    {% if logs %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Destinataire</th>
+                                        <th>Sujet</th>
+                                        <th>Type</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ log.created_at|date:"d/m/Y H:i" }}</small>
+                                        </td>
+                                        <td>
+                                            <strong>{{ log.recipient_email }}</strong>
+                                            {% if log.recipient_name %}
+                                                <br><small class="text-muted">{{ log.recipient_name }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ log.subject }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ log.template.get_template_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            {% if log.status == 'sent' %}
+                                                <span class="badge bg-success">Envoyé</span>
+                                            {% elif log.status == 'failed' %}
+                                                <span class="badge bg-danger">Échoué</span>
+                                            {% elif log.status == 'pending' %}
+                                                <span class="badge bg-warning">En attente</span>
+                                            {% elif log.status == 'bounced' %}
+                                                <span class="badge bg-secondary">Retourné</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if log.status == 'failed' %}
+                                                <a href="{% url 'notifications:resend_email' log.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-redo"></i> Renvoyer
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% if log.error_message %}
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="alert alert-danger mb-0">
+                                                <strong>Erreur:</strong> {{ log.error_message }}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if logs.has_other_pages %}
+                            <nav aria-label="Pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if logs.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ logs.previous_page_number }}">Précédent</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in logs.paginator.page_range %}
+                                        {% if logs.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if logs.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ logs.next_page_number }}">Suivant</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-envelope fa-3x text-muted mb-3"></i>
+                            <h5>Aucun log trouvé</h5>
+                            <p class="text-muted">Aucun email n'a encore été envoyé ou ne correspond à vos critères.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

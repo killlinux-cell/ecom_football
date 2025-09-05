@@ -1,0 +1,70 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>✅ Paiement confirmé !</h2>
+
+<p>Bonjour <strong>{{ customer_name }}</strong>,</p>
+
+<p>Excellente nouvelle ! Votre paiement pour la commande <strong>#{{ order.order_number }}</strong> a été confirmé avec succès.</p>
+
+<div class="order-details">
+    <h3>💳 Détails du paiement</h3>
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">Montant payé</div>
+            <div class="product-details">Méthode: {{ payment_method }}</div>
+        </div>
+        <div class="price">{{ payment_amount|floatformat:0 }} FCFA</div>
+    </div>
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">Date de paiement</div>
+            <div class="product-details">{{ payment.completed_at|date:"d/m/Y à H:i" }}</div>
+        </div>
+        <div class="price">✅ Confirmé</div>
+    </div>
+</div>
+
+<div class="order-details">
+    <h3>📦 Votre commande</h3>
+    
+    {% for item in order_items %}
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">{{ item.product_name }}</div>
+            <div class="product-details">
+                Taille: {{ item.size }} | Quantité: {{ item.quantity }}
+            </div>
+        </div>
+        <div class="price">{{ item.total_price|floatformat:0 }} FCFA</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="total-section">
+    <div class="total-row final">
+        <span>Total payé:</span>
+        <span>{{ payment_amount|floatformat:0 }} FCFA</span>
+    </div>
+</div>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ order.get_absolute_url }}" class="button">Suivre ma commande</a>
+</div>
+
+<h3>🚀 Prochaines étapes</h3>
+<ol>
+    <li><strong>Préparation</strong> : Nous préparons votre commande avec soin (1-2 jours ouvrables)</li>
+    <li><strong>Expédition</strong> : Vous recevrez un email avec le numéro de suivi</li>
+    <li><strong>Livraison</strong> : Livraison sous 3-5 jours ouvrables</li>
+</ol>
+
+<div style="background-color: #e8f5e8; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+    <h4 style="margin: 0 0 10px 0; color: #28a745;">🎉 Votre commande est en cours de préparation !</h4>
+    <p style="margin: 0;">Nous vous tiendrons informé de chaque étape par email.</p>
+</div>
+
+<p>Merci pour votre confiance et votre achat !</p>
+
+<p><strong>L'équipe Maillots Football</strong></p>
+{% endblock %}

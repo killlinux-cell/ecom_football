@@ -1,0 +1,502 @@
+/**
+ * PWA Mobile CSS - Optimisations pour Application Mobile Progressive
+ * Maillots Football
+ */
+
+/* Variables CSS pour PWA */
+:root {
+    --pwa-primary: #1e3c72;
+    --pwa-secondary: #2a5298;
+    --pwa-accent: #ffc107;
+    --pwa-success: #28a745;
+    --pwa-danger: #dc3545;
+    --pwa-light: #f8f9fa;
+    --pwa-dark: #343a40;
+    --pwa-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --pwa-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --pwa-border-radius: 15px;
+    --pwa-transition: all 0.3s ease;
+}
+
+/* Optimisations pour PWA */
+@media (display-mode: standalone) {
+    body {
+        /* Masquer la barre d'adresse sur PWA */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+    
+    .navbar {
+        /* Ajuster la navbar pour PWA */
+        padding-top: env(safe-area-inset-top);
+    }
+    
+    /* Masquer les éléments de navigation du navigateur */
+    .browser-nav {
+        display: none !important;
+    }
+}
+
+/* Styles pour l'installation PWA */
+.pwa-install-banner {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--pwa-primary) 0%, var(--pwa-secondary) 100%);
+    color: white;
+    border-radius: var(--pwa-border-radius);
+    padding: 15px;
+    box-shadow: var(--pwa-shadow-lg);
+    z-index: 1000;
+    animation: slideUp 0.3s ease-out;
+    backdrop-filter: blur(10px);
+}
+
+@keyframes slideUp {
+    from { 
+        transform: translateY(100px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0); 
+        opacity: 1; 
+    }
+}
+
+.pwa-install-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.pwa-install-icon {
+    font-size: 2rem;
+    color: var(--pwa-accent);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.pwa-install-text {
+    flex: 1;
+}
+
+.pwa-install-text strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.pwa-install-text small {
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.pwa-install-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.pwa-install-btn {
+    background: var(--pwa-success);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--pwa-transition);
+    font-size: 0.9rem;
+}
+
+.pwa-install-btn:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.pwa-dismiss-btn {
+    background: transparent;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--pwa-transition);
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pwa-dismiss-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Indicateur de connexion */
+.connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    border-radius: 25px;
+    color: white;
+    font-weight: 600;
+    z-index: 1000;
+    transition: var(--pwa-transition);
+    backdrop-filter: blur(10px);
+    font-size: 0.9rem;
+}
+
+.status-offline {
+    background: var(--pwa-danger);
+    animation: shake 0.5s ease-in-out;
+}
+
+.status-online {
+    background: var(--pwa-success);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Toast notifications */
+.pwa-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(51, 51, 51, 0.95);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    animation: toastSlide 0.3s ease-out;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--pwa-shadow-lg);
+}
+
+@keyframes toastSlide {
+    from { 
+        transform: translateX(-50%) translateY(-100px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateX(-50%) translateY(0); 
+        opacity: 1; 
+    }
+}
+
+.pwa-toast-content strong {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--pwa-accent);
+}
+
+.pwa-toast-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Optimisations mobile pour PWA */
+@media (max-width: 768px) {
+    .pwa-install-banner {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        padding: 12px;
+    }
+    
+    .pwa-install-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .pwa-install-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .pwa-install-btn {
+        flex: 1;
+        max-width: 120px;
+    }
+    
+    .connection-status {
+        top: 10px;
+        right: 10px;
+        padding: 8px 15px;
+        font-size: 0.8rem;
+    }
+    
+    .pwa-toast {
+        left: 10px;
+        right: 10px;
+        transform: none;
+        max-width: none;
+    }
+}
+
+/* Améliorations pour les interactions tactiles */
+.touch-feedback {
+    transition: var(--pwa-transition);
+}
+
+.touch-feedback:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* Boutons optimisés pour mobile */
+.btn-mobile {
+    min-height: 44px; /* Taille minimale recommandée pour les doigts */
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: var(--pwa-border-radius);
+    transition: var(--pwa-transition);
+    touch-action: manipulation;
+}
+
+.btn-mobile:active {
+    transform: scale(0.98);
+}
+
+/* Cards optimisées pour mobile */
+.card-mobile {
+    border-radius: var(--pwa-border-radius);
+    box-shadow: var(--pwa-shadow);
+    transition: var(--pwa-transition);
+    overflow: hidden;
+}
+
+.card-mobile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--pwa-shadow-lg);
+}
+
+.card-mobile:active {
+    transform: scale(0.98);
+}
+
+/* Navigation mobile optimisée */
+.navbar-mobile {
+    backdrop-filter: blur(10px);
+    background: rgba(30, 60, 114, 0.95) !important;
+}
+
+.navbar-mobile .navbar-toggler {
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    transition: var(--pwa-transition);
+}
+
+.navbar-mobile .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+/* Menu mobile avec animation */
+.navbar-collapse {
+    transition: var(--pwa-transition);
+}
+
+.navbar-collapse.show {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Formulaires optimisés pour mobile */
+.form-control-mobile {
+    min-height: 44px;
+    font-size: 16px; /* Évite le zoom sur iOS */
+    border-radius: var(--pwa-border-radius);
+    border: 2px solid #e9ecef;
+    transition: var(--pwa-transition);
+}
+
+.form-control-mobile:focus {
+    border-color: var(--pwa-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
+}
+
+/* Loading states pour PWA */
+.pwa-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.pwa-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Pull to refresh */
+.pull-to-refresh {
+    position: fixed;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--pwa-primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 0 0 15px 15px;
+    z-index: 1000;
+    transition: var(--pwa-transition);
+}
+
+.pull-to-refresh.show {
+    top: 0;
+}
+
+/* Swipe gestures */
+.swipe-container {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.swipe-item {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}
+
+/* Optimisations pour les performances */
+.will-change-transform {
+    will-change: transform;
+}
+
+.will-change-opacity {
+    will-change: opacity;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --pwa-light: #1a1a1a;
+        --pwa-dark: #ffffff;
+    }
+    
+    .pwa-toast {
+        background: rgba(26, 26, 26, 0.95);
+    }
+}
+
+/* Réduction des animations pour les utilisateurs qui préfèrent */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Support pour les écrans haute densité */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .pwa-install-icon {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* Optimisations pour les appareils avec encoche */
+@supports (padding: max(0px)) {
+    .safe-area-padding {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+    }
+}
+
+/* Styles pour les raccourcis PWA */
+.pwa-shortcut {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: var(--pwa-border-radius);
+    background: white;
+    box-shadow: var(--pwa-shadow);
+    transition: var(--pwa-transition);
+    text-decoration: none;
+    color: var(--pwa-dark);
+    min-height: 100px;
+    justify-content: center;
+}
+
+.pwa-shortcut:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--pwa-shadow-lg);
+    color: var(--pwa-dark);
+    text-decoration: none;
+}
+
+.pwa-shortcut-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: var(--pwa-primary);
+}
+
+.pwa-shortcut-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Responsive grid pour les raccourcis */
+.pwa-shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
+
+@media (max-width: 480px) {
+    .pwa-shortcuts-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .pwa-shortcut {
+        min-height: 80px;
+        padding: 10px;
+    }
+    
+    .pwa-shortcut-icon {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+    }
+    
+    .pwa-shortcut-text {
+        font-size: 0.8rem;
+    }
+}

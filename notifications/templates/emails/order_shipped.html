@@ -1,0 +1,79 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>📦 Votre commande est expédiée !</h2>
+
+<p>Bonjour <strong>{{ customer_name }}</strong>,</p>
+
+<p>Excellente nouvelle ! Votre commande <strong>#{{ order.order_number }}</strong> a été expédiée et est en route vers vous.</p>
+
+<div class="order-details">
+    <h3>📋 Détails de l'expédition</h3>
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">Numéro de commande</div>
+            <div class="product-details">Référence: {{ order.order_number }}</div>
+        </div>
+        <div class="price">#{{ order.order_number }}</div>
+    </div>
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">Date d'expédition</div>
+            <div class="product-details">{{ order.updated_at|date:"d/m/Y à H:i" }}</div>
+        </div>
+        <div class="price">🚚 Expédié</div>
+    </div>
+</div>
+
+<div class="order-details">
+    <h3>📦 Articles expédiés</h3>
+    
+    {% for item in order_items %}
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">{{ item.product_name }}</div>
+            <div class="product-details">
+                Taille: {{ item.size }} | Quantité: {{ item.quantity }}
+            </div>
+        </div>
+        <div class="price">{{ item.total_price|floatformat:0 }} FCFA</div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if shipping_address %}
+<div class="order-details">
+    <h3>📍 Adresse de livraison</h3>
+    <p>
+        <strong>{{ shipping_address.first_name }} {{ shipping_address.last_name }}</strong><br>
+        {{ shipping_address.address }}<br>
+        {{ shipping_address.city }}, {{ shipping_address.postal_code }}<br>
+        {{ shipping_address.country }}<br>
+        📞 {{ shipping_address.phone }}
+    </p>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ order.get_absolute_url }}" class="button">Suivre ma commande</a>
+</div>
+
+<h3>⏰ Délai de livraison</h3>
+<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+    <h4 style="margin: 0 0 10px 0; color: #856404;">📅 Livraison prévue</h4>
+    <p style="margin: 0;"><strong>3-5 jours ouvrables</strong> après l'expédition</p>
+    <p style="margin: 5px 0 0 0; font-size: 14px;">Vous recevrez une notification dès la livraison.</p>
+</div>
+
+<h3>📞 Support client</h3>
+<p>Si vous avez des questions concernant votre livraison :</p>
+<ul>
+    <li>📧 Email: support@maillots-football.ci</li>
+    <li>📱 Téléphone: +225 XX XX XX XX</li>
+    <li>💬 Chat en ligne disponible sur notre site</li>
+</ul>
+
+<p>Merci pour votre patience et votre confiance !</p>
+
+<p><strong>L'équipe Maillots Football</strong></p>
+{% endblock %}

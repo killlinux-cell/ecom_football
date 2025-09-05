@@ -5,7 +5,7 @@ Commande Django pour synchroniser les statuts entre Order et Payment
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from orders.models import Order
-from orders.sync_utils import get_status_consistency_report, sync_order_payment_status
+from orders.sync_utils import get_status_consistency_report, sync_order_payment_status, fix_amount_inconsistencies
 
 
 class Command(BaseCommand):
@@ -23,6 +23,11 @@ class Command(BaseCommand):
             help='Corrige automatiquement les incohérences',
         )
         parser.add_argument(
+            '--fix-amounts',
+            action='store_true',
+            help='Corrige automatiquement les incohérences de montants',
+        )
+        parser.add_argument(
             '--order-id',
             type=int,
             help='Synchronise une commande spécifique',
@@ -31,6 +36,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         dry_run = options['dry_run']
         fix = options['fix']
+        fix_amounts = options['fix_amounts']
         order_id = options.get('order_id')
 
         if order_id:
@@ -38,7 +44,7 @@ class Command(BaseCommand):
             self.sync_single_order(order_id, dry_run)
         else:
             # Générer un rapport des incohérences
-            self.generate_report(dry_run, fix)
+            self.generate_report(dry_run, fix, fix_amounts)
 
     def sync_single_order(self, order_id, dry_run):
         """Synchronise une commande spécifique"""
@@ -65,7 +71,7 @@ class Command(BaseCommand):
         except Order.DoesNotExist:
             raise CommandError(f"Commande avec l'ID {order_id} non trouvée")
 
-    def generate_report(self, dry_run, fix):
+    def generate_report(self, dry_run, fix, fix_amounts):
         """Génère un rapport des incohérences"""
         self.stdout.write("🔍 Analyse des incohérences entre commandes et paiements...")
         
@@ -82,12 +88,20 @@ class Command(BaseCommand):
         )
         
         for inconsistency in inconsistencies:
-            self.stdout.write(f"""
+            if inconsistency['inconsistency_type'] == 'status_mismatch':
+                self.stdout.write(f"""
 📋 Commande {inconsistency['order_number']} (ID: {inconsistency['order_id']})
    Statut Order: {inconsistency['order_payment_status']}
    Statut Payment: {inconsistency['payment_status']}
    Statut attendu: {inconsistency['expected_payment_status']}
-            """)
+                """)
+            elif inconsistency['inconsistency_type'] == 'amount_mismatch':
+                self.stdout.write(f"""
+💰 Commande {inconsistency['order_number']} (ID: {inconsistency['order_id']})
+   Montant Order: {inconsistency['order_total']} FCFA
+   Montant Payment: {inconsistency['payment_amount']} FCFA
+   Différence: {inconsistency['difference']} FCFA
+                """)
         
         if dry_run:
             self.stdout.write(
@@ -95,35 +109,45 @@ class Command(BaseCommand):
             )
             return
         
+        # Corriger les montants si demandé
+        if fix_amounts:
+            self.stdout.write("💰 Correction des incohérences de montants...")
+            fixed_amounts = fix_amount_inconsistencies()
+            self.stdout.write(
+                self.style.SUCCESS(f"🎉 {fixed_amounts} incohérence(s) de montant corrigée(s)")
+            )
+        
         if fix:
-            self.stdout.write("🔧 Correction des incohérences...")
+            self.stdout.write("🔧 Correction des incohérences de statuts...")
             fixed_count = 0
             
             with transaction.atomic():
                 for inconsistency in inconsistencies:
-                    try:
-                        order = Order.objects.get(id=inconsistency['order_id'])
-                        success = sync_order_payment_status(order, order.payment_status)
-                        
-                        if success:
-                            fixed_count += 1
-                            self.stdout.write(
-                                f"✅ Commande {order.order_number} corrigée"
-                            )
-                        else:
-                            self.stdout.write(
-                                self.style.WARNING(f"⚠️ Impossible de corriger la commande {order.order_number}")
-                            )
+                    if inconsistency['inconsistency_type'] == 'status_mismatch':
+                        try:
+                            order = Order.objects.get(id=inconsistency['order_id'])
+                            success = sync_order_payment_status(order, order.payment_status)
                             
-                    except Order.DoesNotExist:
-                        self.stdout.write(
-                            self.style.ERROR(f"❌ Commande {inconsistency['order_id']} non trouvée")
-                        )
+                            if success:
+                                fixed_count += 1
+                                self.stdout.write(
+                                    f"✅ Commande {order.order_number} corrigée"
+                                )
+                            else:
+                                self.stdout.write(
+                                    self.style.WARNING(f"⚠️ Impossible de corriger la commande {order.order_number}")
+                                )
+                                
+                        except Order.DoesNotExist:
+                            self.stdout.write(
+                                self.style.ERROR(f"❌ Commande {inconsistency['order_id']} non trouvée")
+                            )
             
             self.stdout.write(
-                self.style.SUCCESS(f"🎉 {fixed_count}/{len(inconsistencies)} incohérence(s) corrigée(s)")
+                self.style.SUCCESS(f"🎉 {fixed_count} incohérence(s) de statut corrigée(s)")
             )
         else:
-            self.stdout.write(
-                self.style.WARNING("Utilisez --fix pour corriger automatiquement les incohérences")
-            )
+            if not fix_amounts:
+                self.stdout.write(
+                    self.style.WARNING("Utilisez --fix pour corriger les statuts et --fix-amounts pour corriger les montants")
+                )
