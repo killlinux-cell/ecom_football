@@ -78,8 +78,8 @@ def send_stock_alert_email(sender, instance, **kwargs):
         try:
             old_instance = Product.objects.get(pk=instance.pk)
             # Vérifier si le stock a baissé en dessous du seuil
-            if (old_instance.stock > 5 and instance.stock <= 5):
-                get_email_service().send_stock_alert(instance, instance.stock)
+            if (old_instance.stock_quantity > 5 and instance.stock_quantity <= 5):
+                get_email_service().send_stock_alert(instance, instance.stock_quantity)
         except Product.DoesNotExist:
             pass
 

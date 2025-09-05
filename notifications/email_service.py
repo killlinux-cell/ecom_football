@@ -293,7 +293,9 @@ class EmailService:
         for admin in admins:
             # Préparation des données
             email_data = {
-                'product': product,
+                'product_name': product.name,
+                'product_price': float(product.price),
+                'product_category': product.category.name if product.category else '',
                 'current_stock': current_stock,
                 'admin_name': f"{admin.first_name} {admin.last_name}".strip(),
             }

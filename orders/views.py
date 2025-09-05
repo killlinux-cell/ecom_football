@@ -59,18 +59,18 @@ def order_create(request):
                         size=item['size']
                     ).first()
                     
-                    # Calculer le prix de base (sans personnalisations)
-                    base_price = item['price'] * item['quantity']
+                    # Créer l'article de commande avec le prix actuel (promotion si applicable)
+                    current_price = item['product'].current_price
+                    base_price = current_price * item['quantity']
                     
-                    # Créer l'article de commande avec le prix de base
                     order_item = OrderItem.objects.create(
                         order=order,
                         product=item['product'],
                         product_name=item['product'].name,
                         size=item['size'],
                         quantity=item['quantity'],
-                        price=item['price'],
-                        total_price=base_price  # Prix de base seulement
+                        price=current_price,  # Utiliser le prix actuel (promotion)
+                        total_price=base_price  # Prix de base avec promotion
                     )
                     
                     # Copier les personnalisations du cart_item vers l'order_item
