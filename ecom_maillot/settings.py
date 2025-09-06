@@ -186,19 +186,19 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.office365.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='orapide.israel@outlook.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='ANAKOisrael1@')
 
 # PayDunya settings
-PAYDUNYA_MASTER_KEY = config('PAYDUNYA_MASTER_KEY', default='')
-PAYDUNYA_PUBLIC_KEY = config('PAYDUNYA_PUBLIC_KEY', default='')
-PAYDUNYA_PRIVATE_KEY = config('PAYDUNYA_PRIVATE_KEY', default='')
-PAYDUNYA_TOKEN = config('PAYDUNYA_TOKEN', default='')
-PAYDUNYA_MODE = config('PAYDUNYA_MODE', default='test')  # 'test' or 'live'
+PAYDUNYA_MASTER_KEY = config('PAYDUNYA_MASTER_KEY', default='knO87N6o-Ejoq-NqAG-1hvs-uqGXEXcf6WU5')
+PAYDUNYA_PUBLIC_KEY = config('PAYDUNYA_PUBLIC_KEY', default='live_public_TFfsJ64umxB7cxmWuDXQ8llXs8f')
+PAYDUNYA_PRIVATE_KEY = config('PAYDUNYA_PRIVATE_KEY', default='live_private_r67ZCfhv976Wfcdo9NZDShQPoSB')
+PAYDUNYA_TOKEN = config('PAYDUNYA_TOKEN', default='PLbMcuekn4llCbAc6n2e')
+PAYDUNYA_MODE = config('PAYDUNYA_MODE', default='live')  # 'test' or 'live'
 
 # Wave Direct Payment Configuration
 WAVE_PHONE_NUMBER = config('WAVE_PHONE_NUMBER', default='+2250575984322')  # Votre numéro Wave

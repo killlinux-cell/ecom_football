@@ -212,6 +212,66 @@ Merci pour votre patience !
 L'équipe Maillots Football'''
             },
             {
+                'name': 'Commande livrée',
+                'template_type': 'order_delivered',
+                'subject': 'Votre commande #{order_number} a été livrée !',
+                'html_content': '''{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>🎉 Votre commande a été livrée !</h2>
+
+<p>Bonjour <strong>{{ customer_name }}</strong>,</p>
+
+<p>Excellente nouvelle ! Votre commande <strong>#{{ order.order_number }}</strong> a été livrée avec succès.</p>
+
+<div class="order-details">
+    <h3>📦 Détails de la livraison</h3>
+    
+    <div class="order-item">
+        <div class="product-info">
+            <div class="product-name">Commande #{{ order.order_number }}</div>
+            <div class="product-details">
+                Livrée le: {{ delivery_date|date:"d/m/Y à H:i" }}
+            </div>
+        </div>
+        <div class="price" style="color: #28a745;">✅ Livrée</div>
+    </div>
+</div>
+
+<div style="background-color: #e8f5e8; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+    <h4 style="margin: 0 0 10px 0; color: #28a745;">🎉 Livraison réussie !</h4>
+    <p style="margin: 0;">Nous espérons que vous êtes satisfait de votre achat. N'hésitez pas à nous faire un retour !</p>
+</div>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{% url 'products:product_list' %}" class="button">Découvrir d'autres maillots</a>
+</div>
+
+<h3>💬 Votre avis nous intéresse</h3>
+<p>Partagez votre expérience avec nous ! Votre avis nous aide à améliorer nos services.</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{% url 'products:product_list' %}" class="button">Laisser un avis</a>
+</div>
+
+<p>Merci encore pour votre confiance et à bientôt !</p>
+
+<p><strong>L'équipe Maillots Football</strong></p>
+{% endblock %}''',
+                'text_content': '''Votre commande a été livrée !
+
+Bonjour {{ customer_name }},
+
+Votre commande #{{ order.order_number }} a été livrée avec succès.
+
+Livrée le: {{ delivery_date|date:"d/m/Y à H:i" }}
+
+Nous espérons que vous êtes satisfait de votre achat !
+
+Merci pour votre confiance,
+L'équipe Maillots Football'''
+            },
+            {
                 'name': 'Rappel de panier abandonné',
                 'template_type': 'cart_reminder',
                 'subject': 'Vous avez oublié quelque chose dans votre panier !',
