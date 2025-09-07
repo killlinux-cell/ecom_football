@@ -15,7 +15,7 @@
                         <div class="carousel-inner">
                             {% for image in product.images.all %}
                             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ product.name }}" style="height: 400px; object-fit: cover;">
+                                <img src="{{ image.image.url }}" class="d-block w-100 product-detail-image" alt="{{ product.name }}">
                             </div>
                             {% endfor %}
                         </div>
@@ -37,15 +37,15 @@
                         {% for image in product.images.all %}
                         <div class="col-3">
                             <img src="{{ image.image.url }}" class="img-thumbnail" alt="{{ product.name }}" 
-                                 style="height: 80px; object-fit: cover; cursor: pointer;"
+                                 style="cursor: pointer;"
                                  onclick="$('#productCarousel').carousel({{ forloop.counter0 }})">
                         </div>
                         {% endfor %}
                     </div>
                     {% endif %}
                 {% else %}
-                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
-                        <i class="fas fa-image text-muted" style="font-size: 4rem;"></i>
+                    <div class="image-placeholder product-detail-image" style="height: 400px;">
+                        <i class="fas fa-image"></i>
                     </div>
                 {% endif %}
             </div>

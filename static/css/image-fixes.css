@@ -1,0 +1,269 @@
+/* Corrections pour l'affichage des images dans les cadres */
+
+/* ===== CORRECTIONS GÉNÉRALES POUR LES IMAGES ===== */
+
+/* Améliorer l'affichage des images de produits */
+.card-img-top,
+.carousel-item img,
+.img-thumbnail {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Correction spécifique pour les images de produits */
+.product-card .card-img-top {
+    height: 250px;
+    object-fit: cover;
+    object-position: center;
+    background-color: #f8f9fa;
+}
+
+/* Améliorer l'affichage des miniatures */
+.img-thumbnail {
+    height: 80px;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.img-thumbnail:hover {
+    border-color: #007bff;
+    transform: scale(1.05);
+}
+
+/* ===== CORRECTIONS POUR LE CAROUSEL ===== */
+
+.carousel-item img {
+    height: 400px;
+    object-fit: contain;
+    object-position: center;
+    background-color: #f8f9fa;
+    padding: 10px;
+}
+
+/* Image de détail de produit spécifique */
+.product-detail-image {
+    height: 400px;
+    object-fit: contain;
+    object-position: center;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Améliorer l'affichage des images du carousel sur mobile */
+@media (max-width: 768px) {
+    .carousel-item img {
+        height: 300px;
+        object-fit: contain;
+        padding: 5px;
+    }
+    
+    .product-detail-image {
+        height: 300px;
+        padding: 10px;
+    }
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES DU PANIER ===== */
+
+.cart-item-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES DE L'ACCUEIL ===== */
+
+.hero-section img,
+.featured-products img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES D'ÉQUIPE ===== */
+
+.team-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    object-position: center;
+    background-color: transparent;
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES DU DASHBOARD ===== */
+
+.dashboard-product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+/* ===== CORRECTIONS RESPONSIVE ===== */
+
+/* Mobile - Petits écrans */
+@media (max-width: 576px) {
+    .product-card .card-img-top {
+        height: 200px;
+    }
+    
+    .carousel-item img {
+        height: 250px;
+    }
+    
+    .img-thumbnail {
+        height: 60px;
+    }
+    
+    .cart-item-image {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+/* Tablettes */
+@media (min-width: 577px) and (max-width: 768px) {
+    .product-card .card-img-top {
+        height: 220px;
+    }
+    
+    .carousel-item img {
+        height: 350px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 769px) {
+    .product-card .card-img-top {
+        height: 250px;
+    }
+    
+    .carousel-item img {
+        height: 400px;
+    }
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES MANQUANTES ===== */
+
+/* Placeholder pour les images manquantes */
+.image-placeholder {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 2rem;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.image-placeholder i {
+    opacity: 0.5;
+}
+
+/* ===== AMÉLIORATIONS VISUELLES ===== */
+
+/* Effet de survol pour les images */
+.product-card:hover .card-img-top {
+    transform: scale(1.02);
+    transition: transform 0.3s ease;
+}
+
+/* Ombre pour les images */
+.card-img-top,
+.carousel-item img {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== CORRECTIONS POUR LES ASPECTS RATIOS ===== */
+
+/* Maintenir les proportions des images */
+.aspect-ratio-16-9 {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+
+.aspect-ratio-4-3 {
+    aspect-ratio: 4/3;
+    overflow: hidden;
+}
+
+.aspect-ratio-1-1 {
+    aspect-ratio: 1/1;
+    overflow: hidden;
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES EN ARRIÈRE-PLAN ===== */
+
+.bg-image {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ===== CORRECTIONS POUR LA CHARGEMENT DES IMAGES ===== */
+
+/* Animation de chargement */
+.image-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES EN HAUTE RÉSOLUTION ===== */
+
+/* Optimisation pour les écrans Retina */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .card-img-top,
+    .carousel-item img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* ===== CORRECTIONS POUR L'ACCESSIBILITÉ ===== */
+
+/* Améliorer le contraste pour les images */
+.card-img-top:focus,
+.carousel-item img:focus {
+    outline: 3px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* ===== CORRECTIONS POUR LES IMAGES EN MODE SOMBRE ===== */
+
+@media (prefers-color-scheme: dark) {
+    .image-placeholder {
+        background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
+        color: #adb5bd;
+        border-color: #495057;
+    }
+    
+    .card-img-top,
+    .carousel-item img {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+}
