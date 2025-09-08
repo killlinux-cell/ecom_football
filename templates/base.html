@@ -35,6 +35,7 @@
     <link rel="stylesheet" href="{% static 'css/mobile-fixes.css' %}">
     <link rel="stylesheet" href="{% static 'css/pwa-mobile.css' %}">
     <link rel="stylesheet" href="{% static 'css/image-fixes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-products-optimization.css' %}">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
@@ -418,6 +419,9 @@
             }
         });
     </script>
+    
+    <!-- JavaScript pour l'optimisation mobile des produits -->
+    <script src="{% static 'js/mobile-products.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

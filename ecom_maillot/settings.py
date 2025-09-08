@@ -187,11 +187,11 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.office365.com')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='orapide.israel@outlook.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='ANAKOisrael1@')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='anakoisrael352@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='ticq fwgi xjnc epif')
 
 # PayDunya settings
 PAYDUNYA_MASTER_KEY = config('PAYDUNYA_MASTER_KEY', default='knO87N6o-Ejoq-NqAG-1hvs-uqGXEXcf6WU5')

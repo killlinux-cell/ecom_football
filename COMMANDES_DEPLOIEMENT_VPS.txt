@@ -1,0 +1,33 @@
+# 🚀 COMMANDES DE DÉPLOIEMENT VPS
+
+## 1. Préparation (sur votre machine locale)
+cd /path/to/your/project
+git status
+git add .
+git commit -m "Déploiement: Emails automatiques + Optimisation mobile"
+git push origin main
+
+## 2. Sur le VPS
+cd /path/to/your/vps/project
+git pull origin main
+
+## 3. Déploiement automatique
+chmod +x deploy_vps.sh
+./deploy_vps.sh
+
+## 4. Ou déploiement manuel
+python manage.py collectstatic --noinput
+python manage.py migrate
+python manage.py init_email_templates
+python configure_gmail_smtp.py
+sudo systemctl restart gunicorn
+sudo systemctl restart nginx
+
+## 5. Tests
+python test_final_emails.py
+python test_mobile_optimization.py
+
+## 6. Vérification
+curl -I https://orapide.shop
+sudo systemctl status gunicorn
+sudo systemctl status nginx

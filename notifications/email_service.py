@@ -44,12 +44,15 @@ class EmailService:
                          email_data, order=None, payment=None, user=None):
         """Crée un log d'email"""
         try:
+            # Sérialiser les données email pour éviter les erreurs JSON
+            serializable_data = self._serialize_email_data(email_data)
+            
             return EmailLog.objects.create(
                 template=template,
                 recipient_email=recipient_email,
                 recipient_name=recipient_name,
                 subject=subject,
-                email_data=email_data,
+                email_data=serializable_data,
                 order=order,
                 payment=payment,
                 user=user,
@@ -58,6 +61,40 @@ class EmailService:
         except Exception as e:
             logger.error(f"Erreur création log email: {str(e)}")
             return None
+    
+    def _serialize_email_data(self, email_data):
+        """Sérialise les données email pour le stockage JSON"""
+        import json
+        from decimal import Decimal
+        
+        serializable_data = {}
+        
+        for key, value in email_data.items():
+            if hasattr(value, 'pk'):  # Objet Django
+                serializable_data[key] = {
+                    'id': value.pk,
+                    'model': value.__class__.__name__,
+                    'str': str(value)
+                }
+            elif hasattr(value, 'all'):  # QuerySet
+                serializable_data[key] = [
+                    {
+                        'id': item.pk,
+                        'model': item.__class__.__name__,
+                        'str': str(item)
+                    } for item in value
+                ]
+            elif isinstance(value, Decimal):  # Objet Decimal
+                serializable_data[key] = float(value)
+            else:
+                # Essayer de sérialiser directement
+                try:
+                    json.dumps(value)  # Test de sérialisation
+                    serializable_data[key] = value
+                except (TypeError, ValueError):
+                    serializable_data[key] = str(value)
+        
+        return serializable_data
     
     def _send_email(self, email_log, html_content, text_content=None):
         """Envoie l'email et met à jour le log"""
@@ -210,6 +247,37 @@ class EmailService:
             email_data=email_data,
             order=order,
             user=order.user
+        )
+        
+        return self._send_email(email_log, html_content, text_content)
+    
+    def send_user_welcome(self, user):
+        """Envoie l'email de bienvenue à un nouvel utilisateur"""
+        if not self.settings:
+            return False
+        
+        template = self._get_template('user_welcome')
+        if not template:
+            return False
+        
+        # Préparation des données
+        email_data = {
+            'user': user,
+            'customer_name': f"{user.first_name} {user.last_name}".strip() or user.email,
+        }
+        
+        # Rendu du contenu
+        html_content = self._render_template(template.html_content, email_data)
+        text_content = self._render_template(template.text_content, email_data) if template.text_content else None
+        
+        # Création du log
+        email_log = self._create_email_log(
+            template=template,
+            recipient_email=user.email,
+            recipient_name=email_data['customer_name'],
+            subject=template.subject,
+            email_data=email_data,
+            user=user
         )
         
         return self._send_email(email_log, html_content, text_content)

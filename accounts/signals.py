@@ -23,6 +23,16 @@ def user_signed_up_handler(sender, request, user, **kwargs):
     user.save()
 
 
+@receiver(user_signed_up)
+def send_welcome_email(sender, request, user, **kwargs):
+    """Envoie un email de bienvenue lors de l'inscription"""
+    try:
+        from notifications.email_service import get_email_service
+        get_email_service().send_user_welcome(user)
+    except Exception as e:
+        print(f"Erreur envoi email bienvenue: {str(e)}")
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """

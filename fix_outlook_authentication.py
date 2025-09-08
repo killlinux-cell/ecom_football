@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script pour corriger l'authentification Outlook
+Script pour configurer l'authentification Gmail
 """
 
 import os
@@ -11,31 +11,32 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ecom_maillot.settings')
 django.setup()
 
-def fix_outlook_authentication():
-    """Corrige l'authentification Outlook"""
-    print("🔧 CORRECTION AUTHENTIFICATION OUTLOOK")
+def fix_gmail_authentication():
+    """Configure l'authentification Gmail"""
+    print("🔧 CONFIGURATION AUTHENTIFICATION GMAIL")
     print("=" * 50)
-    print("Outlook a désactivé l'authentification de base")
-    print("Nous allons configurer un mot de passe d'application")
+    print("Configuration Gmail avec mot de passe d'application")
+    print("Gmail nécessite un mot de passe d'application pour la sécurité")
     print("=" * 50)
     
     # Demander les informations
-    print("\n📧 Configuration Outlook avec mot de passe d'application")
+    print("\n📧 Configuration Gmail avec mot de passe d'application")
     print("-" * 50)
     
-    email = input("Votre email Outlook (ex: anakoisrael352@outlook.com): ").strip()
+    email = input("Votre email Gmail (ex: votre.email@gmail.com): ").strip()
     if not email:
         print("❌ Email requis")
         return False
     
-    print("\n⚠️  IMPORTANT: Vous devez créer un mot de passe d'application")
-    print("1. Allez sur https://account.microsoft.com/security")
-    print("2. Connectez-vous avec votre compte Outlook")
+    print("\n⚠️  IMPORTANT: Vous devez créer un mot de passe d'application Gmail")
+    print("1. Allez sur https://myaccount.google.com/security")
+    print("2. Connectez-vous avec votre compte Gmail")
     print("3. Allez dans 'Sécurité' → 'Mots de passe d'application'")
-    print("4. Créez un nouveau mot de passe d'application")
-    print("5. Copiez le mot de passe généré (16 caractères)")
+    print("4. Sélectionnez 'Application' → 'Autre'")
+    print("5. Donnez un nom (ex: 'Django E-commerce')")
+    print("6. Copiez le mot de passe généré (16 caractères)")
     
-    app_password = input("\nMot de passe d'application Outlook (16 caractères): ").strip()
+    app_password = input("\nMot de passe d'application Gmail (16 caractères): ").strip()
     if not app_password or len(app_password) != 16:
         print("❌ Mot de passe d'application requis (16 caractères)")
         return False
@@ -47,9 +48,9 @@ def fix_outlook_authentication():
     try:
         from notifications.models import EmailSettings
         
-        # Configuration Outlook SMTP avec mot de passe d'application
-        outlook_config = {
-            'smtp_host': 'smtp-mail.outlook.com',
+        # Configuration Gmail SMTP avec mot de passe d'application
+        gmail_config = {
+            'smtp_host': 'smtp.gmail.com',
             'smtp_port': 587,
             'smtp_use_tls': True,
             'smtp_username': email,
@@ -61,16 +62,16 @@ def fix_outlook_authentication():
         
         # Mettre à jour ou créer la configuration
         email_settings, created = EmailSettings.objects.get_or_create(
-            defaults=outlook_config
+            defaults=gmail_config
         )
         
         if not created:
             # Mettre à jour la configuration existante
-            for key, value in outlook_config.items():
+            for key, value in gmail_config.items():
                 setattr(email_settings, key, value)
             email_settings.save()
         
-        print(f"\n✅ Configuration Outlook mise à jour avec mot de passe d'application")
+        print(f"\n✅ Configuration Gmail mise à jour avec mot de passe d'application")
         
         # Afficher la configuration
         print(f"\n📧 Configuration SMTP:")
@@ -92,7 +93,7 @@ def fix_outlook_authentication():
             server.quit()
             
             print("✅ Connexion SMTP réussie avec mot de passe d'application !")
-            print("✅ Configuration Outlook validée")
+            print("✅ Configuration Gmail validée")
             
         except Exception as e:
             print(f"❌ Erreur de test SMTP: {str(e)}")
@@ -111,9 +112,9 @@ def update_env_with_app_password():
     """Met à jour le fichier .env avec le mot de passe d'application"""
     print(f"\n🔧 Mise à jour du fichier .env...")
     
-    # Paramètres Outlook pour les settings
-    outlook_settings = {
-        'EMAIL_HOST': 'smtp-mail.outlook.com',
+    # Paramètres Gmail pour les settings
+    gmail_settings = {
+        'EMAIL_HOST': 'smtp.gmail.com',
         'EMAIL_PORT': 587,
         'EMAIL_USE_TLS': True,
         'EMAIL_BACKEND': 'django.core.mail.backends.smtp.EmailBackend'
@@ -121,38 +122,39 @@ def update_env_with_app_password():
     
     print("📝 Paramètres à ajouter dans vos variables d'environnement:")
     print("-" * 50)
-    for key, value in outlook_settings.items():
+    for key, value in gmail_settings.items():
         print(f"{key}={value}")
     
     print(f"\n📝 Ou dans votre fichier .env:")
     print("-" * 30)
-    for key, value in outlook_settings.items():
+    for key, value in gmail_settings.items():
         print(f"{key}={value}")
     
     print(f"\n⚠️  IMPORTANT:")
-    print("• Ajoutez EMAIL_HOST_USER=votre_email@outlook.com")
+    print("• Ajoutez EMAIL_HOST_USER=votre_email@gmail.com")
     print("• Ajoutez EMAIL_HOST_PASSWORD=votre_mot_de_passe_application")
     print("• Le mot de passe d'application doit faire 16 caractères")
     print("• Redémarrez votre serveur après modification")
 
 def show_app_password_guide():
-    """Affiche le guide pour créer un mot de passe d'application"""
-    print(f"\n📋 GUIDE CRÉATION MOT DE PASSE D'APPLICATION")
+    """Affiche le guide pour créer un mot de passe d'application Gmail"""
+    print(f"\n📋 GUIDE CRÉATION MOT DE PASSE D'APPLICATION GMAIL")
     print("=" * 50)
-    print("1. Allez sur https://account.microsoft.com/security")
-    print("2. Connectez-vous avec votre compte Outlook")
+    print("1. Allez sur https://myaccount.google.com/security")
+    print("2. Connectez-vous avec votre compte Gmail")
     print("3. Allez dans 'Sécurité' → 'Mots de passe d'application'")
-    print("4. Cliquez sur 'Créer un nouveau mot de passe d'application'")
-    print("5. Donnez un nom (ex: 'Application Django')")
-    print("6. Copiez le mot de passe généré (16 caractères)")
-    print("7. Utilisez ce mot de passe dans la configuration")
+    print("4. Cliquez sur 'Sélectionner une application' → 'Autre'")
+    print("5. Donnez un nom (ex: 'Django E-commerce')")
+    print("6. Cliquez sur 'Générer'")
+    print("7. Copiez le mot de passe généré (16 caractères)")
+    print("8. Utilisez ce mot de passe dans la configuration")
     print("=" * 50)
 
 def main():
     """Fonction principale"""
-    print("🔧 CORRECTION AUTHENTIFICATION OUTLOOK")
+    print("🔧 CONFIGURATION AUTHENTIFICATION GMAIL")
     print("=" * 50)
-    print("Ce script corrige l'authentification Outlook")
+    print("Ce script configure l'authentification Gmail")
     print("=" * 50)
     
     # Afficher le guide
@@ -164,8 +166,8 @@ def main():
         print("❌ Configuration annulée")
         return False
     
-    # Configurer Outlook SMTP avec mot de passe d'application
-    success = fix_outlook_authentication()
+    # Configurer Gmail SMTP avec mot de passe d'application
+    success = fix_gmail_authentication()
     
     if success:
         # Mettre à jour les settings Django
@@ -173,7 +175,7 @@ def main():
         
         print(f"\n🎉 CONFIGURATION TERMINÉE!")
         print("=" * 50)
-        print("✅ Outlook SMTP configuré avec mot de passe d'application")
+        print("✅ Gmail SMTP configuré avec mot de passe d'application")
         print("✅ Vous pouvez maintenant envoyer des emails")
         print("✅ Allez sur /dashboard/emails/ pour gérer les emails")
         print("\n📋 PROCHAINES ÉTAPES:")
